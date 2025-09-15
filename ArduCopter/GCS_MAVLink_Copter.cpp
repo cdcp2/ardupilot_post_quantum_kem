@@ -3,6 +3,828 @@
 #include "GCS_MAVLink_Copter.h"
 #include <AP_RPM/AP_RPM_config.h>
 #include <AP_EFI/AP_EFI_config.h>
+#include <AP_Param/AP_Param.h> 
+#include "AP_Crypto/AP_CryptoAEAD.h"
+#include <AP_Math/AP_Math.h> 
+#include <AP_Math/crc.h> 
+
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+  #define CRYPTO_HAVE_DLOPEN 1
+  #include <dlfcn.h>
+#else
+  #define CRYPTO_HAVE_DLOPEN 0
+#endif
+
+static inline uint32_t now_ms() {
+    return AP_HAL::millis(); 
+}
+
+// --- OpenSSL (libcrypto) via dlopen para HKDF/HMAC-SHA256 en SITL ---
+#if CRYPTO_HAVE_DLOPEN
+static void* crypto_dl = nullptr;
+using EVP_MD = void; 
+using HMAC_fn = unsigned char* (*)(const EVP_MD*, const void*, int,
+                                   const unsigned char*, size_t,
+                                   unsigned char*, unsigned int*);
+using EVP_sha256_fn = const EVP_MD* (*)();
+
+static HMAC_fn        p_HMAC        = nullptr;
+static EVP_sha256_fn  p_EVP_sha256  = nullptr;
+
+static bool hkdf_crypto_init()
+{
+    if (crypto_dl && p_HMAC && p_EVP_sha256) return true;
+    const char* cands[] = {"libcrypto.so.3", "libcrypto.so.1.1", "libcrypto.so"};
+    for (auto so : cands) {
+        crypto_dl = dlopen(so, RTLD_NOW);
+        if (crypto_dl) break;
+    }
+    if (!crypto_dl) return false;
+
+    p_HMAC       = (HMAC_fn)dlsym(crypto_dl, "HMAC");
+    p_EVP_sha256 = (EVP_sha256_fn)dlsym(crypto_dl, "EVP_sha256");
+    return (p_HMAC && p_EVP_sha256);
+}
+
+#endif
+
+static inline void hmac_sha256(const uint8_t* key, size_t keylen,
+                               const uint8_t* data, size_t datalen,
+                               uint8_t out[32])
+{
+#if CRYPTO_HAVE_DLOPEN
+    if (!hkdf_crypto_init()) { memset(out, 0, 32); return; }
+    unsigned int olen = 0;
+    p_HMAC(p_EVP_sha256(), key, (int)keylen, data, datalen, out, &olen);
+    if (olen != 32) { memset(out, 0, 32); }  // por seguridad
+#else
+    // TODO: en hardware real, enlaza contra tu implementación/driver de HMAC.
+    // Por ahora, si no hay backend, deja ceros (evita crash en build fuera de SITL).
+    std::memset(out, 0, 32);
+#endif
+}
+
+
+
+// OJO: NO ‘var_info’, sino ‘var_info_crypto’
+const AP_Param::GroupInfo GCS_MAVLINK_Copter::var_info_crypto[] = {
+    AP_GROUPINFO("CRYPTO_ON",  1, GCS_MAVLINK_Copter, _crypto_on, 0),
+    AP_GROUPINFO("CRYPTO_ALG", 2, GCS_MAVLINK_Copter, _crypto_alg, 1),
+    AP_GROUPINFO("CRYPTO_TTL", 3, GCS_MAVLINK_Copter, _crypto_ttl_ms, 600000),
+    AP_GROUPINFO("CRYPTO_RATE",4, GCS_MAVLINK_Copter, _crypto_rate_pps, 50),
+    AP_GROUPINFO("CRYPTO_SID", 5, GCS_MAVLINK_Copter, _crypto_session, 1),
+    AP_GROUPEND
+};
+
+
+// ---- AEAD backend ----
+typedef void (*ascon_sizes_t)(size_t*, size_t*, size_t*);
+typedef int  (*ascon_enc_t)(unsigned char*, unsigned long long*,
+                            const unsigned char*, unsigned long long,
+                            const unsigned char*, unsigned long long,
+                            const unsigned char*, const unsigned char*);
+typedef int  (*ascon_dec_t)(unsigned char*, unsigned long long*,
+                            const unsigned char*, unsigned long long,
+                            const unsigned char*, unsigned long long,
+                            const unsigned char*, const unsigned char*);
+
+#if CRYPTO_HAVE_DLOPEN
+static void* ascon_dl = nullptr;
+static ascon_sizes_t ascon_sizes = nullptr;
+static ascon_enc_t   ascon_enc   = nullptr;
+static ascon_dec_t   ascon_dec   = nullptr;
+#else
+extern "C" {
+    // Si compilas estático en board real, declara aquí (o incluye el header)
+    void ascon_aead128_sizes(size_t*, size_t*, size_t*);
+    int  ascon_aead128_encrypt(unsigned char*, unsigned long long*,
+                               const unsigned char*, unsigned long long,
+                               const unsigned char*, unsigned long long,
+                               const unsigned char*, const unsigned char*);
+    int  ascon_aead128_decrypt(unsigned char*, unsigned long long*,
+                               const unsigned char*, unsigned long long,
+                               const unsigned char*, unsigned long long,
+                               const unsigned char*, const unsigned char*);
+}
+#endif
+
+bool GCS_MAVLINK_Copter::aead_init_backend() {
+    if (aead_ready_) return true;
+#if CRYPTO_HAVE_DLOPEN
+    ascon_dl = dlopen("libascon_aead.so", RTLD_NOW);
+    if (!ascon_dl) return false;
+    ascon_sizes = (ascon_sizes_t)dlsym(ascon_dl, "ascon_aead128_sizes");
+    ascon_enc   = (ascon_enc_t)  dlsym(ascon_dl, "ascon_aead128_encrypt");
+    ascon_dec   = (ascon_dec_t)  dlsym(ascon_dl, "ascon_aead128_decrypt");
+    if (!ascon_sizes || !ascon_enc || !ascon_dec) return false;
+#else
+    // Enlace estático
+#endif
+    aead_ready_ = true;
+    return true;
+}
+
+bool GCS_MAVLINK_Copter::aead_sizes(AP_AEAD_Sizes& out) const {
+#if CRYPTO_HAVE_DLOPEN
+    if (!ascon_sizes) return false;
+    size_t k=0,n=0,t=0; ascon_sizes(&k,&n,&t);
+    out.key=k; out.npub=n; out.tag=t; return true;
+#else
+    size_t k=0,n=0,t=0; ascon_aead128_sizes(&k,&n,&t);
+    out.key=k; out.npub=n; out.tag=t; return true;
+#endif
+}
+
+bool GCS_MAVLINK_Copter::aead_encrypt(uint8_t* c, size_t& clen,
+                                      const uint8_t* m, size_t mlen,
+                                      const uint8_t* ad, size_t adlen,
+                                      const uint8_t* npub,
+                                      const uint8_t* key) {
+    if (!aead_init_backend()) return false;
+    unsigned long long outlen = 0;
+#if CRYPTO_HAVE_DLOPEN
+    if (ascon_enc((unsigned char*)c,&outlen, m, (unsigned long long)mlen,
+                  ad, (unsigned long long)adlen, npub, key) != 0) return false;
+#else
+    if (ascon_aead128_encrypt((unsigned char*)c,&outlen, m, (unsigned long long)mlen,
+                              ad, (unsigned long long)adlen, npub, key) != 0) return false;
+#endif
+    clen = (size_t)outlen; return true;
+}
+
+void GCS_MAVLINK_Copter::nonce_from_seq_tx(uint16_t seq, uint8_t out[16]) const {
+    memcpy(out, _sess.nonce_base_tx, 16);
+    out[0] = uint8_t(seq & 0xFF);
+    out[1] = uint8_t(seq >> 8);
+    out[2] = (uint8_t)mavlink_system.sysid;
+    out[3] = (uint8_t)mavlink_system.compid;
+}
+void GCS_MAVLINK_Copter::nonce_from_seq_rx(uint16_t seq, uint8_t out[16]) const {
+    memcpy(out, _sess.nonce_base_rx, 16);
+    out[0] = uint8_t(seq & 0xFF);
+    out[1] = uint8_t(seq >> 8);
+    out[2] = (uint8_t)mavlink_system.sysid;
+    out[3] = (uint8_t)mavlink_system.compid;
+}
+
+
+void GCS_MAVLINK_Copter::send_msg_raw(const mavlink_message_t& m)
+{
+    uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+    const uint16_t len = mavlink_msg_to_send_buffer(buf, &m);
+
+    // lock necesita (chan, len)
+    comm_send_lock(chan, len);
+    comm_send_buffer(chan, buf, len);
+    comm_send_unlock(chan);
+}
+
+void GCS_MAVLINK_Copter::handle_crypto_pkt(const mavlink_message_t& msg)
+{
+    crypto_init_if_needed();
+
+    
+    mavlink_crypto_pkt_t p{};
+    mavlink_msg_crypto_pkt_decode(&msg, &p);
+
+    
+    if (p.alg != AP_AEAD_ALG_ASCON128)  {
+        
+        return;
+    }
+
+    
+    AP_CryptoAEAD* aead = AP_Crypto_GetAEAD_Ascon();
+    if (!aead) { return; }
+
+    
+    uint8_t ad[8]; unsigned adlen = 0;
+
+    uint8_t plain[MAVLINK_MAX_PACKET_LEN] = {0};
+    size_t mlen = 0;
+    if (!aead->decrypt(plain, mlen,
+                       p.cipher, p.cipher_len,
+                       (adlen ? ad : nullptr), adlen,
+                       p.nonce, _sess.key)) {
+        // opcional: STATUS fallo de decrypt
+        return;
+    }
+
+    mavlink_message_t inner{};
+    mavlink_status_t  st{};
+    for (size_t i = 0; i < mlen; i++) {
+        if (mavlink_parse_char(chan, plain[i], &inner, &st)) {
+            this->handle_message(inner);
+        }
+    }
+}
+
+
+bool GCS_MAVLINK_Copter::aead_decrypt(uint8_t* m, size_t& mlen,
+                                      const uint8_t* c, size_t clen,
+                                      const uint8_t* ad, size_t adlen,
+                                      const uint8_t* npub,
+                                      const uint8_t* key) {
+    if (!aead_init_backend()) return false;
+    unsigned long long outlen = 0;
+#if CRYPTO_HAVE_DLOPEN
+    if (ascon_dec((unsigned char*)m,&outlen, c, (unsigned long long)clen,
+                  ad, (unsigned long long)adlen, npub, key) != 0) return false;
+#else
+    if (ascon_aead128_decrypt((unsigned char*)m,&outlen, c, (unsigned long long)clen,
+                              ad, (unsigned long long)adlen, npub, key) != 0) return false;
+#endif
+    mlen = (size_t)outlen; return true;
+}
+
+// ---- HQC backend (solo usamos enc(pk)-> (ct, ss)) ----
+#if CRYPTO_HAVE_DLOPEN
+static void* hqc_dl = nullptr;
+#endif
+
+bool GCS_MAVLINK_Copter::hqc_init_backend() {
+    if (hqc_ready_) return true;
+#if CRYPTO_HAVE_DLOPEN
+    hqc_dl = dlopen("libpqc_hqc128.so", RTLD_NOW);
+    if (!hqc_dl) return false;
+    hqc_enc_ = (hqc_enc_t)dlsym(hqc_dl, "pqc_hqc128_enc");
+    if (!hqc_enc_) return false;
+#else
+extern "C" int pqc_hqc128_enc(uint8_t*, uint8_t*, const uint8_t*);
+    hqc_enc_ = pqc_hqc128_enc;
+#endif
+    hqc_ready_ = (hqc_enc_ != nullptr);
+    return hqc_ready_;
+}
+
+void GCS_MAVLINK_Copter::crypto_init_if_needed() {
+    if (!crypto_params_registered_) {
+        // Registra el grupo de parámetros de ESTA clase
+        AP_Param::setup_object_defaults(this, var_info_crypto);
+        crypto_params_registered_ = true;
+    }
+
+    if (!_rate_last_ms) _rate_last_ms = now_ms();
+    if (!_sess.active) {
+        _sess.session_id = (uint8_t)_crypto_session.get();
+        _sess.start_ms = 0;
+        _sess.rx_last_seq = 0;
+        _sess.tx_next_seq = 1;
+        memset(_sess.key, 0, sizeof(_sess.key));
+        memset(_sess.nonce_base, 0, sizeof(_sess.nonce_base));
+    }
+}
+
+bool GCS_MAVLINK_Copter::crypto_gate_open() const {
+    if (_crypto_on.get() == 0) return false;
+    if (_crypto_alg.get() != AP_AEAD_ALG_ASCON128) return false;
+    if (!_sess.active) return false;
+    // TTL
+    if (_crypto_ttl_ms.get() > 0 && _sess.start_ms > 0) {
+        if ((uint32_t)(now_ms() - _sess.start_ms) > (uint32_t)_crypto_ttl_ms.get()) return false;
+    }
+    return true;
+}
+
+// Token bucket simple por segundo
+bool GCS_MAVLINK_Copter::crypto_rate_allow() {
+    const uint32_t now = now_ms();
+    if (now - _rate_last_ms >= 1000) {
+        _rate_last_ms = now;
+        _rate_tokens = (uint32_t)_crypto_rate_pps.get();
+    }
+    if (_rate_tokens == 0) return false;
+    _rate_tokens--;
+    return true;
+}
+
+void GCS_MAVLINK_Copter::nonce_from_seq(uint16_t seq, uint8_t out16[16]) const {
+    // Nonce = base (16B) con los bytes 0..1 xor seq LE
+    memcpy(out16, _sess.nonce_base, 16);
+    out16[0] ^= (uint8_t)(seq & 0xFF);
+    out16[1] ^= (uint8_t)(seq >> 8);
+    // También ligamos sysid/compid en bytes 2..3 para unicidad por canal
+    out16[2] ^= (uint8_t)mavlink_system.sysid;
+    out16[3] ^= (uint8_t)mavlink_system.compid;
+}
+
+void GCS_MAVLINK_Copter::build_ad(uint8_t session, uint16_t seq, uint8_t out8[8]) const {
+    // AD v1: [0x01][sysid][compid][session][seq_le][msgid_le]
+    out8[0] = 1;
+    out8[1] = (uint8_t)mavlink_system.sysid;
+    out8[2] = (uint8_t)mavlink_system.compid;
+    out8[3] = session;
+    out8[4] = (uint8_t)(seq & 0xFF);
+    out8[5] = (uint8_t)(seq >> 8);
+    out8[6] = (uint8_t)(MAVLINK_MSG_ID_CRYPTO_PKT & 0xFF);
+    out8[7] = (uint8_t)(MAVLINK_MSG_ID_CRYPTO_PKT >> 8);
+}
+
+// --- Allowlist de mensajes "sin firma" permitidos ---
+bool GCS_MAVLINK_Copter::is_allowlisted_unsigned(uint32_t msgid)
+{
+    switch (msgid) {
+    case MAVLINK_MSG_ID_HEARTBEAT:
+    case MAVLINK_MSG_ID_STATUSTEXT:
+#ifdef MAVLINK_MSG_ID_HQC_HELLO
+    case MAVLINK_MSG_ID_HQC_HELLO:
+    case MAVLINK_MSG_ID_HQC_PK_CHUNK:
+    case MAVLINK_MSG_ID_HQC_CT_ACK:
+    case MAVLINK_MSG_ID_HQC_FINISH:
+    case MAVLINK_MSG_ID_HQC_STATUS:
+#endif
+        return true;
+    default:
+        return false;
+    }
+}
+
+// --- Callback que MAVLink invoca para decidir si acepta un paquete no firmado ---
+bool GCS_MAVLINK_Copter::accept_unsigned_cb(const mavlink_status_t* status, uint32_t msgid)
+{
+    (void)status; // evita warning -Wunused-parameter con -Werror
+    return GCS_MAVLINK_Copter::is_allowlisted_unsigned(msgid);
+}
+
+
+
+static void hkdf_sha256_extract(const uint8_t* salt, size_t saltlen,
+                                const uint8_t* ikm, size_t ikmlen,
+                                uint8_t prk[32]) {
+    hmac_sha256(salt, saltlen, ikm, ikmlen, prk);
+}
+
+static void hkdf_sha256_expand(const uint8_t prk[32],
+                               const uint8_t* info, size_t infolen,
+                               uint8_t* okm, size_t L) {
+    uint8_t T[32]; size_t Tlen = 0;
+    uint8_t ctr = 1; size_t off = 0;
+    while (off < L) {
+        // T = HMAC(PRK, T || info || ctr)
+        uint8_t buf[32 + 64 + 1]; // T(32) + info(max ~64) + 1
+        size_t pos = 0;
+        if (Tlen) { memcpy(buf+pos, T, Tlen); pos += Tlen; }
+        if (info && infolen) { memcpy(buf+pos, info, infolen); pos += infolen; }
+        buf[pos++] = ctr++;
+        hmac_sha256(prk, 32, buf, pos, T);
+        Tlen = 32;
+        size_t n = MIN((size_t)32, L - off);
+        memcpy(okm + off, T, n);
+        off += n;
+    }
+}
+
+
+void GCS_MAVLINK_Copter::derive_session_key_from_ss(const uint8_t ss[32],
+                                                    const uint8_t salt16[16],
+                                                    uint8_t key16_out[16],
+                                                    uint8_t nonce_base16_out[16]) {
+    const uint8_t info[] = "ardupilot-hqc-v1";
+    uint8_t prk[32], okm[32];
+    hkdf_sha256_extract(salt16, 16, ss, 32, prk);
+    hkdf_sha256_expand(prk, info, sizeof(info)-1, okm, sizeof(okm));
+    memcpy(key16_out,        okm,      16);
+    memcpy(nonce_base16_out, okm + 16, 16);
+}
+
+
+
+bool GCS_MAVLINK_Copter::send_crypto_pkt_wrapped(const mavlink_message_t& inner)
+{
+    if (!crypto_gate_open()) return false;
+    if (!crypto_rate_allow()) return false;
+
+    // Serializa inner → buffer
+    uint8_t inner_buf[240]; // deja margen
+    const uint16_t inner_len = mavlink_msg_to_send_buffer(inner_buf, &inner);
+    if (inner_len == 0 || inner_len > 220) return false; // ajusta si necesitas más
+
+    // Seq + AD + Nonce
+    const uint16_t seq = _sess.tx_next_seq++;
+    uint8_t ad[8]; build_ad(_sess.session_id, seq, ad);
+    uint8_t nonce[16]; nonce_from_seq(seq, nonce);
+
+    // Encrypt
+    uint8_t cipher[240]; size_t clen = sizeof(cipher);
+    if (!aead_encrypt(cipher, clen, inner_buf, inner_len,
+                      ad, sizeof(ad), nonce, _sess.key)) return false;
+
+    // Empaquetar CRYPTO_PKT
+    mavlink_message_t msg{};
+    mavlink_crypto_pkt_t pkt{};
+    pkt.seq = seq;
+    pkt.cipher_len = (uint16_t)clen;
+    pkt.target_system = mavlink_system.sysid;
+    pkt.target_component = mavlink_system.compid;
+    pkt.alg = 1; // ASCON128
+    pkt.session = _sess.session_id;
+    memcpy(pkt.nonce, nonce, 16);
+    memset(pkt.cipher, 0, sizeof(pkt.cipher));
+    memcpy(pkt.cipher, cipher, clen);
+
+    mavlink_msg_crypto_pkt_encode(mavlink_system.sysid, mavlink_system.compid, &msg, &pkt);
+    send_msg_raw(msg);
+    return true;
+}
+
+void GCS_MAVLINK_Copter::handle_hqc_hello(const mavlink_message_t& msg)
+{
+    // Inicializa entornos
+    crypto_init_if_needed();
+    if (!hqc_init_backend()) {
+        // responder rechazando por backend no disponible
+        mavlink_message_t ack{};
+        mavlink_hqc_hello_t in{};
+        mavlink_msg_hqc_hello_decode(&msg, &in);
+
+        mavlink_hqc_hello_ack_t out{};
+        out.session_id = in.session_id;
+        out.mtu = 220;
+        out.window = 8;
+        out.required_alg = 1; // ASCON128
+        out.accept = 0;
+        out.status = HQC_KEX_ENC_UNAV;
+        mavlink_msg_hqc_hello_ack_encode(mavlink_system.sysid, mavlink_system.compid, &ack, &out);
+        send_msg_raw(ack);
+        return;
+    }
+
+    // Guardar parámetros de sesión
+    hqc_.reset();
+    mavlink_hqc_hello_t in{};
+    mavlink_msg_hqc_hello_decode(&msg, &in);
+    hqc_.session_id = in.session_id;
+    hqc_.pk_len = in.pk_len;
+    hqc_.ct_len = in.ct_len;
+    hqc_.version = in.version;
+    hqc_.suite_id = in.suite_id;
+    hqc_.flags = in.flags;
+    memcpy(hqc_.salt, in.handshake_salt, 16);
+
+    // Reservar buffer para PK
+    if (hqc_.pk_len == 0 || hqc_.pk_len > 65536) { // sanity
+        // Responder BAD_LEN
+        mavlink_message_t st{};
+        mavlink_hqc_status_t s{};
+        s.session_id = hqc_.session_id;
+        s.value = hqc_.pk_len;
+        s.status = HQC_KEX_BAD_LEN;
+        s.detail = 0;
+        mavlink_msg_hqc_status_encode(mavlink_system.sysid, mavlink_system.compid, &st, &s);
+        send_msg_raw(st);
+        return;
+    }
+    hqc_.pk = (uint8_t*)malloc(hqc_.pk_len);
+    if (!hqc_.pk) {
+        mavlink_message_t st{};
+        mavlink_hqc_status_t s{};
+        s.session_id = hqc_.session_id;
+        s.value = 0;
+        s.status = HQC_KEX_INTERNAL;
+        s.detail = 1;
+        mavlink_msg_hqc_status_encode(mavlink_system.sysid, mavlink_system.compid, &st, &s);
+        send_msg_raw(st);
+        return;
+    }
+
+    // ACK de hello (aceptamos)
+    mavlink_message_t ack{};
+    mavlink_hqc_hello_ack_t out{};
+    out.session_id = hqc_.session_id;
+    out.mtu    = hqc_.mtu;
+    out.window = hqc_.window;
+    out.required_alg = 1; // ASCON128
+    out.accept = 1;
+    out.status = HQC_KEX_IN_PROGRESS;
+    mavlink_msg_hqc_hello_ack_encode(mavlink_system.sysid, mavlink_system.compid, &ack, &out);
+    send_msg_raw(ack);
+}
+
+static inline uint32_t crc32_ap(const uint8_t* buf, size_t len)
+{
+    uint32_t crc = 0;
+    crc ^= ~0U;
+    crc = crc_crc32(crc, buf, (uint32_t)len);
+    crc ^= ~0U;
+    return crc;
+}
+
+void GCS_MAVLINK_Copter::handle_hqc_pk_chunk(const mavlink_message_t& msg)
+{
+    if (!hqc_ready_) return;
+
+    mavlink_hqc_pk_chunk_t c{};
+    mavlink_msg_hqc_pk_chunk_decode(&msg, &c);
+    if (c.session_id != hqc_.session_id) return;
+
+    // bounds
+    if ((uint64_t)c.offset + c.count > hqc_.pk_len) {
+        mavlink_message_t st{};
+        mavlink_hqc_status_t s{};
+        s.session_id = hqc_.session_id; s.value = c.offset; s.status = HQC_KEX_BAD_LEN; s.detail=2;
+        mavlink_msg_hqc_status_encode(mavlink_system.sysid, mavlink_system.compid, &st, &s);
+        send_msg_raw(st);
+        return;
+    }
+
+    memcpy(hqc_.pk + c.offset, c.data, c.count);
+    hqc_.pk_rcvd += c.count;
+
+    // Progreso
+    if ((hqc_.pk_rcvd % (hqc_.mtu * 4)) == 0 || hqc_.pk_rcvd == hqc_.pk_len) {
+        mavlink_message_t st{};
+        mavlink_hqc_status_t s{};
+        s.session_id = hqc_.session_id; s.value = hqc_.pk_rcvd; s.status = HQC_KEX_IN_PROGRESS; s.detail=0;
+        mavlink_msg_hqc_status_encode(mavlink_system.sysid, mavlink_system.compid, &st, &s);
+        send_msg_raw(st);
+    }
+
+    // ¿PK completa? → enc()
+    if (hqc_.pk_rcvd == hqc_.pk_len) {
+
+        // Estimar ct_len si no vino
+        if (hqc_.ct_len == 0 || hqc_.ct_len > 65536) {
+            if (hqc_.ct_len == 0) {
+                switch (hqc_.suite_id) {
+                    case 1: hqc_.ct_len = 4433;  break; // HQC-128
+                    case 3: hqc_.ct_len = 8978;  break; // HQC-192
+                    case 5: hqc_.ct_len = 14421; break; // HQC-256
+                    default: hqc_.ct_len = 4433; break; // fallback sensato
+                }
+            } else {
+                hqc_.ct_len = MIN(hqc_.ct_len, (uint32_t)65536U);
+            }
+        }
+
+        // Reservar CT UNA sola vez
+        if (hqc_.ct) { free(hqc_.ct); hqc_.ct = nullptr; }
+        hqc_.ct = (uint8_t*)malloc(hqc_.ct_len);
+        if (!hqc_.ct) {
+            mavlink_message_t st{};
+            mavlink_hqc_status_t s{};
+            s.session_id = hqc_.session_id; s.value = 0; s.status = HQC_KEX_INTERNAL; s.detail=1;
+            mavlink_msg_hqc_status_encode(mavlink_system.sysid, mavlink_system.compid, &st, &s);
+            send_msg_raw(st);
+            return;
+        }
+
+        // Encapsular: genera CT y SS (64B en HQC)
+        uint8_t ss_local[64] = {0};
+        if (!hqc_enc_ || hqc_enc_(hqc_.ct, ss_local, hqc_.pk) != 0) {
+            mavlink_message_t st{};
+            mavlink_hqc_status_t s{};
+            s.session_id = hqc_.session_id; s.value = 0; s.status = HQC_KEX_INTERNAL; s.detail=3;
+            mavlink_msg_hqc_status_encode(mavlink_system.sysid, mavlink_system.compid, &st, &s);
+            send_msg_raw(st);
+            return;
+        }
+
+        // Guarda SS y CRCs para FINISH
+        memcpy(hqc_.ss, ss_local, sizeof(ss_local)); // hqc_.ss debe ser [64]
+        hqc_.pk_crc = crc32_ap(hqc_.pk, hqc_.pk_len);
+        hqc_.ct_crc = crc32_ap(hqc_.ct, hqc_.ct_len);
+
+
+        const uint16_t mtu = hqc_.mtu ? hqc_.mtu : 220;
+        const uint32_t n_chunks = (hqc_.ct_len + mtu - 1U) / mtu;
+        hqc_.ct_acked.assign(n_chunks, 0);
+
+        send_text(MAV_SEVERITY_INFO,
+                "HQC_CT init len=%u mtu=%u chunks=%u",
+                (unsigned)hqc_.ct_len, (unsigned)mtu, (unsigned)n_chunks);
+
+        // dispara las dos primeras ventanas para evitar estar esperando el primer ACK:
+        for (uint32_t off = 0; off < MIN<uint32_t>(hqc_.ct_len, mtu*64U); off += mtu) {
+            resend_ct_chunk_at(off);
+        }
+
+        // Enviar CT fragmentado
+        send_hqc_ct_chunks();
+    }
+}
+
+
+void GCS_MAVLINK_Copter::resend_ct_window(uint32_t base, uint32_t mask)
+{
+    if (!hqc_.ct || hqc_.ct_len == 0) return;
+    const uint16_t mtu = hqc_.mtu;
+    for (uint8_t i = 0; i < 32; i++) {
+        const uint32_t off = base + (uint32_t)i * mtu;
+        if (off >= hqc_.ct_len) break;
+        const bool received = (mask >> i) & 0x1;
+        if (!received) {
+            const uint16_t count = (uint16_t)MIN<uint32_t>(mtu, hqc_.ct_len - off);
+            mavlink_message_t m{};
+            mavlink_hqc_ct_chunk_t out{};
+            out.session_id = hqc_.session_id;
+            out.offset = off;
+            out.count = count;
+            memset(out.data, 0, sizeof(out.data));
+            memcpy(out.data, hqc_.ct + off, count);
+            mavlink_msg_hqc_ct_chunk_encode(mavlink_system.sysid, mavlink_system.compid, &m, &out);
+            send_msg_raw(m);
+        }
+    }
+}
+
+
+void GCS_MAVLINK_Copter::send_hqc_ct_chunks()
+{
+    if (!hqc_.ct || hqc_.ct_len == 0) return;
+    const uint16_t mtu = hqc_.mtu;
+    for (uint32_t off = 0; off < hqc_.ct_len; off += mtu) {
+        const uint32_t idx = off / mtu;
+        if (idx < hqc_.ct_acked.size() && hqc_.ct_acked[idx]) {
+            continue; // ya ACK
+        }
+        resend_ct_chunk_at(off);
+    }
+}
+
+void GCS_MAVLINK_Copter::resend_ct_chunk_at(uint32_t off)
+{
+    if (!hqc_.ct || off >= hqc_.ct_len) return;
+    const uint16_t mtu = hqc_.mtu ? hqc_.mtu : 220;
+    const uint16_t count = (uint16_t)MIN<uint32_t>(mtu, hqc_.ct_len - off);
+
+    // DEBUG
+    send_text(MAV_SEVERITY_DEBUG, "HQC_CT_CHUNK TX off=%u n=%u", (unsigned)off, (unsigned)count);
+
+    mavlink_message_t m{};
+    mavlink_hqc_ct_chunk_t out{};
+    out.session_id = hqc_.session_id;
+    out.offset = off;
+    out.count = count;
+    memset(out.data, 0, sizeof(out.data));
+    memcpy(out.data, hqc_.ct + off, count);
+    mavlink_msg_hqc_ct_chunk_encode(mavlink_system.sysid, mavlink_system.compid, &m, &out);
+    send_msg_raw(m);
+}
+
+
+void GCS_MAVLINK_Copter::handle_hqc_ct_ack(const mavlink_message_t& msg)
+{
+    mavlink_hqc_ct_ack_t a{};
+    mavlink_msg_hqc_ct_ack_decode(&msg, &a);
+    if (a.session_id != hqc_.session_id) return;
+
+    const uint16_t mtu = hqc_.mtu ? hqc_.mtu : 220;
+    const uint32_t base_idx = a.base / mtu;
+
+    send_text(MAV_SEVERITY_DEBUG, "HQC_CT_ACK base=%u mask=0x%08X",
+              (unsigned)a.base, (unsigned)a.mask);
+
+    for (uint8_t i = 0; i < 32; i++) {
+        const uint32_t idx = base_idx + i;
+        if (idx >= hqc_.ct_acked.size()) break;
+        if ((a.mask >> i) & 1U) { hqc_.ct_acked[idx] = 1; }
+    }
+    resend_ct_window(a.base, a.mask);
+}
+
+
+void GCS_MAVLINK_Copter::send_hqc_status(uint8_t status, uint32_t value, uint8_t detail)
+{
+    mavlink_message_t st{};
+    mavlink_hqc_status_t s{};
+    s.session_id = hqc_.session_id;
+    s.value      = value;
+    s.status     = status;
+    s.detail     = detail;
+
+    mavlink_msg_hqc_status_encode(mavlink_system.sysid,
+                                  mavlink_system.compid,
+                                  &st, &s);
+    send_msg_raw(st);
+}
+
+
+
+// helpers para logs compactos
+static inline uint32_t u32le(const uint8_t* p) {
+    return (uint32_t)p[0] | ((uint32_t)p[1]<<8) | ((uint32_t)p[2]<<16) | ((uint32_t)p[3]<<24);
+}
+static void print_hex16(GCS_MAVLINK_Copter* g, const char* tag, const uint8_t* b) {
+    g->send_text(MAV_SEVERITY_INFO, "%s=%08x %08x %08x %08x",
+                 tag, u32le(b), u32le(b+4), u32le(b+8), u32le(b+12));
+}
+
+void GCS_MAVLINK_Copter::handle_hqc_finish(const mavlink_message_t& msg)
+{
+    mavlink_hqc_finish_t fin{};
+    mavlink_msg_hqc_finish_decode(&msg, &fin);
+
+    send_text(MAV_SEVERITY_INFO,
+              "HQC_FINISH sid=%llu len=%u",
+              (unsigned long long)fin.session_id,
+              (unsigned)fin.tag_len);
+
+    if (fin.session_id != hqc_.session_id || fin.tag_len != 32) {
+        send_hqc_status(HQC_KEX_BAD_LEN, /*detail=*/9, /*value=*/0);
+        return;
+    }
+
+    // ---- transcript v1 (tu mismo layout, packed) ----
+    struct __attribute__((packed)) FinishBlob {
+        uint8_t  version, suite_id;
+        uint64_t session_id;
+        uint8_t  salt[16];
+        uint32_t pk_len, ct_len, pk_crc, ct_crc;
+        uint16_t mtu;
+        uint8_t  window, alg;
+    } blob;
+
+    blob.version    = hqc_.version;
+    blob.suite_id   = hqc_.suite_id;
+    blob.session_id = hqc_.session_id;
+    memcpy(blob.salt, hqc_.salt, 16);
+    blob.pk_len     = hqc_.pk_len;
+    blob.ct_len     = hqc_.ct_len;
+    blob.pk_crc     = hqc_.pk_crc;
+    blob.ct_crc     = hqc_.ct_crc;
+    blob.mtu        = hqc_.mtu;
+    blob.window     = hqc_.window;
+    blob.alg        = AP_AEAD_ALG_ASCON128;
+
+    // ---- LOG entrada para comparar con GCS ----
+    send_text(MAV_SEVERITY_INFO, "FIN mtu=%u win=%u pk_len=%u ct_len=%u",
+              (unsigned)blob.mtu, (unsigned)blob.window, (unsigned)blob.pk_len, (unsigned)blob.ct_len);
+    send_text(MAV_SEVERITY_INFO, "FIN crc pk=%08x ct=%08x", blob.pk_crc, blob.ct_crc);
+    print_hex16(this, "FIN salt", blob.salt);
+    print_hex16(this, "FIN tag_rx", fin.tag);
+
+    // ---- HKDF con SS=64 (HQC-128 usa SS de 64 bytes) ----
+    uint8_t prk64[32], kf64[32], tag64[32];
+    hkdf_sha256_extract(hqc_.salt, 16, hqc_.ss, 64, prk64);
+    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:finish", 23, kf64, 32);
+    hmac_sha256(kf64, 32, (const uint8_t*)&blob, sizeof(blob), tag64);
+
+    print_hex16(this, "FIN kf64", kf64);
+    print_hex16(this, "FIN tag_exp64", tag64);
+
+    bool ok = (memcmp(tag64, fin.tag, 32) == 0);
+
+#if 1 // compat temporal: reintenta con SS=32 si falla (para detectar desalineaciones)
+    uint8_t prk32[32], kf32[32], tag32[32];
+    bool ok32 = false;
+    if (!ok) {
+        hkdf_sha256_extract(hqc_.salt, 16, hqc_.ss, 32, prk32);
+        hkdf_sha256_expand(prk32, (const uint8_t*)"ardupilot-hqc-v1:finish", 23, kf32, 32);
+        hmac_sha256(kf32, 32, (const uint8_t*)&blob, sizeof(blob), tag32);
+        print_hex16(this, "FIN kf32", kf32);
+        print_hex16(this, "FIN tag_exp32", tag32);
+        ok32 = (memcmp(tag32, fin.tag, 32) == 0);
+    }
+    if (!ok && ok32) {
+        send_text(MAV_SEVERITY_WARNING, "HQC_FINISH compat: SS=32 matched; please fix to SS=64");
+        // seguimos con prk32 para derivar claves y no bloquear
+        memcpy(prk64, prk32, 32);
+        ok = true;
+    }
+#endif
+
+    if (!ok) {
+        // NUNCA silencio: status BAD_MAC
+        send_hqc_status(HQC_KEX_BAD_LEN, /*detail=*/10, /*value=*/0);
+        send_text(MAV_SEVERITY_WARNING, "HQC_FINISH BAD_MAC");
+        return;
+    }
+
+    // --- derivaciones finales con PRK válido (64 normal o 32 compat) ---
+    uint8_t k_sig32[32], k_tx[16], k_rx[16], n_tx[16], n_rx[16];
+    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:sign",          22, k_sig32, 32);
+    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:enc:fc->gcs",   26, k_tx, 16);
+    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:enc:gcs->fc",   26, k_rx, 16);
+    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:nonce:fc->gcs", 28, n_tx, 16);
+    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:nonce:gcs->fc", 28, n_rx, 16);
+
+    // instala claves (tu layout)
+    memcpy(_sess.key,        k_rx, 16);
+    memcpy(_sess.nonce_base, n_rx, 16);
+    _sess.session_id = (uint8_t)_crypto_session.get();
+    _sess.active     = true;
+    _sess.start_ms   = now_ms();
+    _sess.rx_last_seq = 0;
+    _sess.tx_next_seq = 1;
+
+    // firma MAVLink2
+    static mavlink_signing_streams_t g_streams{};
+    static mavlink_signing_t s{}; memset(&s,0,sizeof(s));
+    memcpy(s.secret_key, k_sig32, 32);
+    s.link_id = _sess.session_id;
+    s.flags   = MAVLINK_SIGNING_FLAG_SIGN_OUTGOING;
+    s.accept_unsigned_callback = &GCS_MAVLINK_Copter::accept_unsigned_cb;
+    memset(&g_streams, 0, sizeof(g_streams));   // reset de anti-replay por link_id
+
+    mavlink_status_t* st = mavlink_get_channel_status(chan);
+    st->signing         = &s;
+    st->signing_streams = &g_streams;
+
+    send_hqc_status(HQC_KEX_OK, /*detail=*/0, /*value=*/0);
+    send_text(MAV_SEVERITY_INFO, "HQC_FINISH OK; gate/signing enabled link_id=%u", (unsigned)s.link_id);
+}
+
+
 
 MAV_TYPE GCS_Copter::frame_type() const
 {
@@ -389,6 +1211,20 @@ void GCS_MAVLINK_Copter::packetReceived(const mavlink_status_t &status,
         // optional handling of GLOBAL_POSITION_INT as a MAVLink based avoidance source
         copter.avoidance_adsb.handle_msg(msg);
     }
+#endif
+#if defined(MAVLINK_MSG_ID_HQC_FINISH)
+    if (msg.msgid == MAVLINK_MSG_ID_HQC_FINISH) {
+        handle_hqc_finish(msg);
+        return;
+    }
+#endif
+#ifdef MAVLINK2
+if (crypto_gate_open()) {
+    const bool signed_v2 = (msg.incompat_flags & MAVLINK_IFLAG_SIGNED) != 0;
+    if (!signed_v2 && !is_allowlisted_unsigned(msg.msgid)) {
+        return; // drop
+    }
+}
 #endif
     GCS_MAVLINK::packetReceived(status, msg);
 }
@@ -1266,6 +2102,27 @@ void GCS_MAVLINK_Copter::handle_message(const mavlink_message_t &msg)
     case MAVLINK_MSG_ID_NAMED_VALUE_INT:
         copter.g2.toy_mode.handle_message(msg);
         break;
+#endif
+#if defined(MAVLINK_MSG_ID_HQC_HELLO)
+    case MAVLINK_MSG_ID_CRYPTO_PKT:
+        handle_crypto_pkt(msg);
+        return;
+    case MAVLINK_MSG_ID_HQC_HELLO:
+        handle_hqc_hello(msg);
+        return;
+    case MAVLINK_MSG_ID_HQC_PK_CHUNK:
+        handle_hqc_pk_chunk(msg);
+        return;
+
+    case MAVLINK_MSG_ID_HQC_CT_ACK:
+        handle_hqc_ct_ack(msg);
+        return;
+
+    case MAVLINK_MSG_ID_HQC_FINISH:
+        send_text(MAV_SEVERITY_INFO,
+              "HQC_FINISH recv");
+        handle_hqc_finish(msg);
+        return;
 #endif
     default:
         GCS_MAVLINK::handle_message(msg);

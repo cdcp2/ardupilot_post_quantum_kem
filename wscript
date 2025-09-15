@@ -481,12 +481,12 @@ def _collect_autoconfig_files(cfg):
 def configure(cfg):
     if is_ci:
         print(f"::group::Waf Configure")
-	# we need to enable debug mode when building for gconv, and force it to sitl
+    # forzamos board sitl si no viene
     if cfg.options.board is None:
         cfg.options.board = 'sitl'
 
     boards_names = boards.get_boards_names()
-    if not cfg.options.board in boards_names:
+    if cfg.options.board not in boards_names:
         for b in boards_names:
             if b.upper() == cfg.options.board.upper():
                 cfg.options.board = b
@@ -526,7 +526,6 @@ def configure(cfg):
 
     cfg.env.OPTIONS = cfg.options.__dict__
 
-    # Allow to differentiate our build from the make build
     cfg.define('WAF_BUILD', 1)
 
     cfg.msg('Autoconfiguration', 'enabled' if cfg.options.autoconfig else 'disabled')
@@ -540,11 +539,8 @@ def configure(cfg):
 
     if cfg.options.board_start_time != 0:
         cfg.define('AP_BOARD_START_TIME', cfg.options.board_start_time)
-        # also in env for hrt.c
         cfg.env.AP_BOARD_START_TIME = cfg.options.board_start_time
 
-    # require python 3.8.x or later
-    # also update `MIN_VER` in `./waf`
     cfg.load('python')
     cfg.check_python_version(minver=(3,8,0))
 
@@ -575,7 +571,6 @@ def configure(cfg):
 
     if cfg.env.BOARD == "sitl":
         cfg.start_msg('Littlefs')
-
         if cfg.options.sitl_littlefs:
             cfg.end_msg('enabled')
         else:
@@ -586,16 +581,10 @@ def configure(cfg):
     cfg.load('build_summary')
 
     cfg.start_msg('Benchmarks')
-    if cfg.env.HAS_GBENCHMARK:
-        cfg.end_msg('enabled')
-    else:
-        cfg.end_msg('disabled', color='YELLOW')
+    cfg.end_msg('enabled' if cfg.env.HAS_GBENCHMARK else 'disabled', color=None if cfg.env.HAS_GBENCHMARK else 'YELLOW')
 
     cfg.start_msg('Unit tests')
-    if cfg.env.HAS_GTEST:
-        cfg.end_msg('enabled')
-    else:
-        cfg.end_msg('disabled', color='YELLOW')
+    cfg.end_msg('enabled' if cfg.env.HAS_GTEST else 'disabled', color=None if cfg.env.HAS_GTEST else 'YELLOW')
 
     cfg.start_msg('Scripting')
     if cfg.options.disable_scripting:
@@ -614,35 +603,20 @@ def configure(cfg):
     cfg.recurse('libraries/AP_DDS')
 
     cfg.start_msg('Scripting runtime checks')
-    if cfg.options.scripting_checks:
-        cfg.end_msg('enabled')
-    else:
-        cfg.end_msg('disabled', color='YELLOW')
+    cfg.end_msg('enabled' if cfg.options.scripting_checks else 'disabled', color=None if cfg.options.scripting_checks else 'YELLOW')
 
     cfg.start_msg('Debug build')
-    if cfg.env.DEBUG:
-        cfg.end_msg('enabled')
-    else:
-        cfg.end_msg('disabled', color='YELLOW')
+    cfg.end_msg('enabled' if cfg.env.DEBUG else 'disabled', color=None if cfg.env.DEBUG else 'YELLOW')
 
     if cfg.env.DEBUG:
         cfg.start_msg('VS Code launch')
-        if cfg.env.VS_LAUNCH:
-            cfg.end_msg('enabled')
-        else:
-            cfg.end_msg('disabled', color='YELLOW')
+        cfg.end_msg('enabled' if cfg.env.VS_LAUNCH else 'disabled', color=None if cfg.env.VS_LAUNCH else 'YELLOW')
 
     cfg.start_msg('Coverage build')
-    if cfg.env.COVERAGE:
-        cfg.end_msg('enabled')
-    else:
-        cfg.end_msg('disabled', color='YELLOW')
+    cfg.end_msg('enabled' if cfg.env.COVERAGE else 'disabled', color=None if cfg.env.COVERAGE else 'YELLOW')
 
     cfg.start_msg('Force 32-bit build')
-    if cfg.env.FORCE32BIT:
-        cfg.end_msg('enabled')
-    else:
-        cfg.end_msg('disabled', color='YELLOW')
+    cfg.end_msg('enabled' if cfg.env.FORCE32BIT else 'disabled', color=None if cfg.env.FORCE32BIT else 'YELLOW')
 
     cfg.env.append_value('GIT_SUBMODULES', 'mavlink')
 
@@ -661,28 +635,31 @@ def configure(cfg):
     else:
         cfg.env.ENABLE_HEADER_CHECKS = False
 
-    # Always use system extensions
     cfg.define('_GNU_SOURCE', 1)
 
-    if cfg.options.Werror:
-        # print(cfg.options.Werror)
-        if cfg.options.disable_Werror:
-            cfg.options.Werror = False
+    if cfg.options.Werror and cfg.options.disable_Werror:
+        cfg.options.Werror = False
 
     cfg.write_config_header(os.path.join(cfg.variant, 'ap_config.h'), guard='_AP_CONFIG_H_')
-
-    # add in generated flags
     cfg.env.CXXFLAGS += ['-include', 'ap_config.h']
+
+    # ---- SITL: fuerza -ldl para dlopen/dlsym/dlclose
+    if cfg.env.BOARD == 'sitl':
+        cfg.env.append_unique('LIB', ['dl'])
+        # Si en algún punto necesitas exportar símbolos del binario:
+        # cfg.env.append_unique('LINKFLAGS', ['-rdynamic'])
 
     cfg.remove_target_list()
     _collect_autoconfig_files(cfg)
     if is_ci:
         print("::endgroup::")
-
     if cfg.env.DEBUG and cfg.env.VS_LAUNCH:
         import vscode_helper
         vscode_helper.init_launch_json_if_not_exist(cfg)
         vscode_helper.update_openocd_cfg(cfg)
+
+
+
 
 def collect_dirs_to_recurse(bld, globs, **kw):
     dirs = []
@@ -760,49 +737,39 @@ def _build_cmd_tweaks(bld):
         bld.options.clear_failed_tests = True
 
 def _build_dynamic_sources(bld):
+    # Mavlink headers generados
     if not bld.env.BOOTLOADER:
         bld(
             features='mavgen',
             source='modules/mavlink/message_definitions/v1.0/all.xml',
             output_dir='libraries/GCS_MAVLink/include/mavlink/v2.0/',
             name='mavlink',
-            # this below is not ideal, mavgen tool should set this, but that's not
-            # currently possible
             export_includes=[
-            bld.bldnode.make_node('libraries').abspath(),
-            bld.bldnode.make_node('libraries/GCS_MAVLink').abspath(),
+                bld.bldnode.make_node('libraries').abspath(),
+                bld.bldnode.make_node('libraries/GCS_MAVLink').abspath(),
             ],
-            )
-
-    if (bld.get_board().with_can or bld.env.HAL_NUM_CAN_IFACES) and not bld.env.AP_PERIPH:
-        bld(
-            features='dronecangen',
-            source=bld.srcnode.ant_glob('modules/DroneCAN/DSDL/[a-z]* libraries/AP_DroneCAN/dsdl/[a-z]*', dir=True, src=False),
-            output_dir='modules/DroneCAN/libcanard/dsdlc_generated/',
-            name='dronecan',
-            export_includes=[
-                bld.bldnode.make_node('modules/DroneCAN/libcanard/dsdlc_generated/include').abspath(),
-                bld.srcnode.find_dir('modules/DroneCAN/libcanard/').abspath(),
-                bld.srcnode.find_dir('libraries/AP_DroneCAN/canard/').abspath(),
-                ]
-            )
-    elif bld.env.AP_PERIPH:
-        bld(
-            features='dronecangen',
-            source=bld.srcnode.ant_glob('modules/DroneCAN/DSDL/* libraries/AP_DroneCAN/dsdl/*', dir=True, src=False),
-            output_dir='modules/DroneCAN/libcanard/dsdlc_generated/',
-            name='dronecan',
-            export_includes=[
-                bld.bldnode.make_node('modules/DroneCAN/libcanard/dsdlc_generated/include').abspath(),
-                bld.srcnode.find_dir('modules/DroneCAN/libcanard/').abspath(),
-            ]
         )
+
+    # --- FORZAR DSDL DroneCAN SIEMPRE (evita undefined refs *_encode/_decode) ---
+    bld(
+        features='dronecangen',
+        source=bld.srcnode.ant_glob(
+            'modules/DroneCAN/DSDL/[a-z]* libraries/AP_DroneCAN/dsdl/[a-z]*',
+            dir=True, src=False),
+        output_dir='modules/DroneCAN/libcanard/dsdlc_generated/',
+        name='dronecan',
+        export_includes=[
+            bld.bldnode.make_node('modules/DroneCAN/libcanard/dsdlc_generated/include').abspath(),
+            bld.srcnode.find_dir('modules/DroneCAN/libcanard/').abspath(),
+            bld.srcnode.find_dir('libraries/AP_DroneCAN/canard/').abspath(),
+        ]
+    )
 
     bld.recurse("libraries/AP_DDS")
 
     def write_version_header(tsk):
-        bld = tsk.generator.bld
-        return bld.write_version_header(tsk.outputs[0].abspath())
+        bld2 = tsk.generator.bld
+        return bld2.write_version_header(tsk.outputs[0].abspath())
 
     bld(
         name='ap_version',
@@ -814,6 +781,7 @@ def _build_dynamic_sources(bld):
     bld.env.prepend_value('INCLUDES', [
         bld.bldnode.abspath(),
     ])
+
 
 def _build_common_taskgens(bld):
     # NOTE: Static library with vehicle set to UNKNOWN, shared by all
@@ -914,17 +882,18 @@ def build(bld):
     bld.env.CXXDEPS = config_hash
 
     bld.post_mode = Build.POST_LAZY
-
     bld.load('ardupilotwaf')
 
+    # Aseguramos que todos los objetos de libs vehiculares usen mavlink, AP_Crypto y dronecan
     bld.env.AP_LIBRARIES_OBJECTS_KW.update(
-        use=['mavlink'],
+        use=['mavlink', 'AP_Crypto', 'dronecan'],
         cxxflags=['-include', 'ap_config.h'],
     )
 
     _load_pre_build(bld)
 
     if bld.get_board().with_can:
+        # redundante, pero harmless con lo de arriba
         bld.env.AP_LIBRARIES_OBJECTS_KW['use'] += ['dronecan']
 
     if bld.get_board().with_littlefs:
@@ -941,22 +910,91 @@ def build(bld):
     bld.add_group('dynamic_sources')
     _build_dynamic_sources(bld)
 
+    # --- [FIX DRONECAN] Compilar DSDL *.c y meterlos al link ---
+    # 1) Creamos un grupo extra para los objetos de DroneCAN (post generación)
+    bld.add_group('dronecan_dsdl')
+
+    # 2) Buscamos los .c generados por el DSDL compiler
+    dsdl_src_glob = 'modules/DroneCAN/libcanard/dsdlc_generated/src/**/*.c'
+    dsdl_srcs = bld.path.ant_glob(dsdl_src_glob, quiet=True)
+
+    if not dsdl_srcs:
+        bld.msg('DroneCAN DSDL sources',
+                'NO encontrados aún en modules/DroneCAN/libcanard/dsdlc_generated/src (se generarán en este build).',
+                color='YELLOW')
+        # No abortamos; si ya existen de builds previos, ant_glob los verá.
+        # Si no, en la primera pasada puede no verlos, pero en builds normales
+        # ya están presentes tras dronecangen.
+
+    # 3) Compilamos los .c generados a un "objects bundle" (sin librería)
+    #    Así evitamos problemas de orden de link con estáticas.
+    bld.objects(
+        target='dronecan_dsdl_objs',
+        source=dsdl_srcs,
+        includes=[
+            'modules/DroneCAN/libcanard',
+            'modules/DroneCAN/libcanard/dsdlc_generated/include',
+            'libraries/AP_DroneCAN/canard',
+        ],
+        cflags=['-std=gnu11'],
+        name='dronecan_dsdl_objs',
+    )
+
+    # 4) Aseguramos que TODAS las libs del vehículo (libArduCopter_libs.a, etc.)
+    #    y los ejecutables usen estos objetos. Esto coloca los .o justo donde hacen falta.
+    if 'use' not in bld.env.AP_LIBRARIES_OBJECTS_KW:
+        bld.env.AP_LIBRARIES_OBJECTS_KW['use'] = []
+    if 'dronecan_dsdl_objs' not in bld.env.AP_LIBRARIES_OBJECTS_KW['use']:
+        bld.env.AP_LIBRARIES_OBJECTS_KW['use'] += ['dronecan_dsdl_objs']
+
+    # 5) (cinturón y tirantes) inyectamos también en los c/cxxprogram ya creados
+    #    por si alguna ruta del build no pasa por ap_library.
+    def _inject_dsdl_into_programs(ctx):
+        from waflib import TaskGen, Utils as _Utils
+        for group in ctx.groups:
+            for tg in group:
+                if not isinstance(tg, TaskGen.task_gen):
+                    continue
+                feats = _Utils.to_list(getattr(tg, 'features', []))
+                if 'cprogram' in feats or 'cxxprogram' in feats:
+                    cur_use = _Utils.to_list(getattr(tg, 'use', []))
+                    if 'dronecan_dsdl_objs' not in cur_use:
+                        cur_use.append('dronecan_dsdl_objs')
+                        tg.use = cur_use
+    bld.add_post_fun(_inject_dsdl_into_programs)
+
+    # --- Nuestra librería de cifrado (wrapper ASCON con dlopen en SITL) ---
+    bld.stlib(
+        target='AP_Crypto',
+        source=['libraries/AP_Crypto/AP_Crypto_Ascon.cpp'],
+        includes=['libraries'],
+        cxxflags=['-include', 'ap_config.h'],
+        name='AP_Crypto',
+    )
+
+    # SITL: asegurar -ldl en link
+    if bld.env.BOARD == 'sitl':
+        bld.env.append_unique('LIB', ['dl'])
+        # Si necesitas exportar símbolos del binario principal:
+        # bld.env.append_unique('LINKFLAGS', ['-rdynamic'])
+
     bld.add_group('build')
     bld.get_board().build(bld)
     _build_common_taskgens(bld)
-
     _build_recursion(bld)
-
     _build_post_funs(bld)
+
     if is_ci:
-        def print_ci_endgroup(bld):
+        def print_ci_endgroup(bld2):
             print(f"::endgroup::")
         bld.add_post_fun(print_ci_endgroup)
-
 
     if bld.env.DEBUG and bld.env.VS_LAUNCH:
         import vscode_helper
         vscode_helper.update_settings(bld)
+
+
+
 
 ardupilotwaf.build_command('check',
     program_group_list='all',
