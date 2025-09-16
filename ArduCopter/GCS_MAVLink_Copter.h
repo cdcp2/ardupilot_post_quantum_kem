@@ -309,6 +309,8 @@ private:
     void nonce_from_seq(uint16_t seq, uint8_t out16[16]) const;
     void derive_session_key_from_ss(const uint8_t ss[32], const uint8_t salt16[16], uint8_t key16_out[16], uint8_t nonce_base16_out[16]);
     void send_hqc_status(uint8_t status, uint32_t value = 0, uint8_t detail = 0);
+    void install_signing_key_(uint8_t link_id, const uint8_t key32[32]);
+    bool _signing_required{false};
 
     // Hook de inicialización
     void crypto_init_if_needed();

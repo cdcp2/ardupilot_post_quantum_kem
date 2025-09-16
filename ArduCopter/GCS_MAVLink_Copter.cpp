@@ -48,22 +48,124 @@ static bool hkdf_crypto_init()
 
 #endif
 
-static inline void hmac_sha256(const uint8_t* key, size_t keylen,
-                               const uint8_t* data, size_t datalen,
-                               uint8_t out[32])
-{
-#if CRYPTO_HAVE_DLOPEN
-    if (!hkdf_crypto_init()) { memset(out, 0, 32); return; }
-    unsigned int olen = 0;
-    p_HMAC(p_EVP_sha256(), key, (int)keylen, data, datalen, out, &olen);
-    if (olen != 32) { memset(out, 0, 32); }  // por seguridad
-#else
-    // TODO: en hardware real, enlaza contra tu implementación/driver de HMAC.
-    // Por ahora, si no hay backend, deja ceros (evita crash en build fuera de SITL).
-    std::memset(out, 0, 32);
-#endif
+struct sha256_ctx {
+    uint32_t state[8];
+    uint64_t bitlen;
+    uint8_t  data[64];
+    uint32_t datalen;
+};
+
+static const uint32_t K256[64] = {
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+};
+
+static inline uint32_t ROTR(uint32_t x, uint32_t n) { return (x>>n) | (x<<(32-n)); }
+static inline uint32_t Ch (uint32_t x,uint32_t y,uint32_t z){ return (x&y) ^ (~x & z); }
+static inline uint32_t Maj(uint32_t x,uint32_t y,uint32_t z){ return (x&y) ^ (x&z) ^ (y&z); }
+static inline uint32_t SIG0(uint32_t x){ return ROTR(x,2) ^ ROTR(x,13) ^ ROTR(x,22); }
+static inline uint32_t SIG1(uint32_t x){ return ROTR(x,6) ^ ROTR(x,11) ^ ROTR(x,25); }
+static inline uint32_t sig0(uint32_t x){ return ROTR(x,7) ^ ROTR(x,18) ^ (x>>3); }
+static inline uint32_t sig1(uint32_t x){ return ROTR(x,17) ^ ROTR(x,19) ^ (x>>10); }
+
+static void sha256_transform(sha256_ctx& c, const uint8_t data[64]) {
+    uint32_t m[64];
+    for (int i=0;i<16;i++) {
+        m[i]  = (uint32_t)data[i*4+0]<<24;
+        m[i] |= (uint32_t)data[i*4+1]<<16;
+        m[i] |= (uint32_t)data[i*4+2]<<8;
+        m[i] |= (uint32_t)data[i*4+3];
+    }
+    for (int i=16;i<64;i++) m[i] = sig1(m[i-2]) + m[i-7] + sig0(m[i-15]) + m[i-16];
+
+  
+    // (guardamos c.state[2] momentáneamente en k para mantener 8 regs)
+    // Mejor hacerlo explícito:
+    uint32_t A=c.state[0], B=c.state[1], C=c.state[2], D=c.state[3], E=c.state[4], F=c.state[5], G=c.state[6], H=c.state[7];
+    for (int i=0;i<64;i++) {
+        uint32_t t1 = H + SIG1(E) + Ch(E,F,G) + K256[i] + m[i];
+        uint32_t t2 = SIG0(A) + Maj(A,B,C);
+        H = G; G = F; F = E; E = D + t1;
+        D = C; C = B; B = A; A = t1 + t2;
+    }
+    c.state[0] += A; c.state[1] += B; c.state[2] += C; c.state[3] += D;
+    c.state[4] += E; c.state[5] += F; c.state[6] += G; c.state[7] += H;
 }
 
+static void sha256_init(sha256_ctx& c) {
+    c.datalen = 0; c.bitlen = 0;
+    c.state[0]=0x6a09e667; c.state[1]=0xbb67ae85; c.state[2]=0x3c6ef372; c.state[3]=0xa54ff53a;
+    c.state[4]=0x510e527f; c.state[5]=0x9b05688c; c.state[6]=0x1f83d9ab; c.state[7]=0x5be0cd19;
+}
+static void sha256_update(sha256_ctx& c, const uint8_t* data, uint32_t len) {
+    for (uint32_t i=0;i<len;i++) {
+        c.data[c.datalen++] = data[i];
+        if (c.datalen==64) {
+            sha256_transform(c,c.data);
+            c.bitlen += 512;
+            c.datalen = 0;
+        }
+    }
+}
+static void sha256_final(sha256_ctx& c, uint8_t out[32]) {
+    uint32_t i = c.datalen;
+    // padding
+    if (c.datalen<56) {
+        c.data[i++] = 0x80;
+        while (i<56) c.data[i++]=0;
+    } else {
+        c.data[i++] = 0x80;
+        while (i<64) c.data[i++]=0;
+        sha256_transform(c,c.data);
+        memset(c.data,0,56);
+    }
+    c.bitlen += c.datalen*8ULL;
+    c.data[63] = (uint8_t)(c.bitlen      );
+    c.data[62] = (uint8_t)(c.bitlen >>  8);
+    c.data[61] = (uint8_t)(c.bitlen >> 16);
+    c.data[60] = (uint8_t)(c.bitlen >> 24);
+    c.data[59] = (uint8_t)(c.bitlen >> 32);
+    c.data[58] = (uint8_t)(c.bitlen >> 40);
+    c.data[57] = (uint8_t)(c.bitlen >> 48);
+    c.data[56] = (uint8_t)(c.bitlen >> 56);
+    sha256_transform(c,c.data);
+
+    for (int j=0;j<4;j++) {
+        for (int i2=0;i2<8;i2++)
+            out[i2*4+j] = (uint8_t)((c.state[i2] >> (24-8*j)) & 0xFF);
+    }
+}
+
+static void hmac_sha256(const uint8_t* key, uint32_t keylen,
+                        const uint8_t* data, uint32_t datalen,
+                        uint8_t out[32])
+{
+    uint8_t k0[64]; memset(k0,0,64);
+    if (keylen>64) {
+        sha256_ctx t; sha256_init(t); sha256_update(t,key,keylen); sha256_final(t,k0);
+    } else {
+        memcpy(k0,key,keylen);
+    }
+    uint8_t ipad[64], opad[64];
+    for (int i=0;i<64;i++){ ipad[i]=k0[i]^0x36; opad[i]=k0[i]^0x5c; }
+
+    uint8_t inner[32];
+    sha256_ctx ci; sha256_init(ci);
+    sha256_update(ci, ipad, 64);
+    sha256_update(ci, data, datalen);
+    sha256_final (ci, inner);
+
+    sha256_ctx co; sha256_init(co);
+    sha256_update(co, opad, 64);
+    sha256_update(co, inner, 32);
+    sha256_final (co, out);
+}
 
 
 // OJO: NO ‘var_info’, sino ‘var_info_crypto’
@@ -173,11 +275,31 @@ void GCS_MAVLINK_Copter::send_msg_raw(const mavlink_message_t& m)
     uint8_t buf[MAVLINK_MAX_PACKET_LEN];
     const uint16_t len = mavlink_msg_to_send_buffer(buf, &m);
 
-    // lock necesita (chan, len)
+    // DEBUG: detectar si salió como MAVLink2 y con firma
+    const bool is_v2 = (len >= 3 && buf[0] == 0xFD);
+    if (is_v2) {
+        const uint8_t incompat = buf[2];
+        const bool signed_flag = (incompat & 0x01) != 0;
+        if (signed_flag && len >= 13) {
+            // cola de 13 bytes: [link_id][ts(6)][sig(6)]
+            const uint8_t link_id = buf[len-13];
+            uint64_t ts = 0;
+            for (int i = 0; i < 6; i++) ts |= (uint64_t)buf[len-12+i] << (8*i);
+            send_text(MAV_SEVERITY_DEBUG,
+                      "TX signed: ch=%d len=%u link=%u ts=%llu",
+                      (int)chan, (unsigned)len, (unsigned)link_id,
+                      (unsigned long long)ts);
+        } else {
+            send_text(MAV_SEVERITY_DEBUG,
+                      "TX unsigned: ch=%d len=%u", (int)chan, (unsigned)len);
+        }
+    }
+
     comm_send_lock(chan, len);
     comm_send_buffer(chan, buf, len);
     comm_send_unlock(chan);
 }
+
 
 void GCS_MAVLINK_Copter::handle_crypto_pkt(const mavlink_message_t& msg)
 {
@@ -375,17 +497,44 @@ static void hkdf_sha256_expand(const uint8_t prk[32],
 }
 
 
-void GCS_MAVLINK_Copter::derive_session_key_from_ss(const uint8_t ss[32],
-                                                    const uint8_t salt16[16],
-                                                    uint8_t key16_out[16],
-                                                    uint8_t nonce_base16_out[16]) {
-    const uint8_t info[] = "ardupilot-hqc-v1";
-    uint8_t prk[32], okm[32];
-    hkdf_sha256_extract(salt16, 16, ss, 32, prk);
-    hkdf_sha256_expand(prk, info, sizeof(info)-1, okm, sizeof(okm));
-    memcpy(key16_out,        okm,      16);
-    memcpy(nonce_base16_out, okm + 16, 16);
+// ===============================================================
+// Deriva todas las claves de sesión desde SS y SALT del handshake
+//  - Rellena claves direccionales (tx/rx) y los campos "deprecated"
+//  - Deriva k_sig (32B) para MAVLink2 signing
+// ===============================================================
+void GCS_MAVLINK_Copter::derive_session_keys_from_ss(const uint8_t* ss, size_t ss_len,
+                                                     const uint8_t salt16[16])
+{
+    // HKDF-Extract
+    uint8_t prk[32];
+    hkdf_sha256_extract(salt16, 16, ss, (uint32_t)ss_len, prk);
+
+    // k_sig32 para firmado MAVLink v2
+    static const uint8_t info_sign[] = "ardupilot-hqc-v1:sign";
+    hkdf_sha256_expand(prk, info_sign, sizeof(info_sign)-1, _sess.k_sig, 32);
+
+    // okm base (key16 || nonce_base16) compatible con el GCS actual
+    static const uint8_t info_data[] = "ardupilot-hqc-v1";
+    uint8_t okm[32];
+    hkdf_sha256_expand(prk, info_data, sizeof(info_data)-1, okm, 32);
+
+    // Campos "deprecated" (lo que usa hoy tu CRYPTO_PKT)
+    memcpy(_sess.key,        okm,      16);
+    memcpy(_sess.nonce_base, okm + 16, 16);
+
+    // Claves y nonces direccionales = mismas por compat (GCS usa una sola)
+    memcpy(_sess.key_tx,         okm,      16);
+    memcpy(_sess.key_rx,         okm,      16);
+    memcpy(_sess.nonce_base_tx,  okm + 16, 16);
+    memcpy(_sess.nonce_base_rx,  okm + 16, 16);
+
+    // Reset de estado de sesión / anti-replay
+    _sess.replay_window = 0;
+    _sess.replay_base   = 0;
+    _sess.rx_last_seq   = 0;
+    _sess.tx_next_seq   = 1;
 }
+
 
 
 
@@ -709,120 +858,134 @@ static void print_hex16(GCS_MAVLINK_Copter* g, const char* tag, const uint8_t* b
                  tag, u32le(b), u32le(b+4), u32le(b+8), u32le(b+12));
 }
 
-void GCS_MAVLINK_Copter::handle_hqc_finish(const mavlink_message_t& msg)
+static bool _allow_unsigned_msgid(uint32_t id)
+{
+    switch (id) {
+    case MAVLINK_MSG_ID_HEARTBEAT:
+    case MAVLINK_MSG_ID_HQC_HELLO:
+    case MAVLINK_MSG_ID_HQC_PK_CHUNK:
+    case MAVLINK_MSG_ID_HQC_CT_ACK:
+    case MAVLINK_MSG_ID_HQC_FINISH:
+    case MAVLINK_MSG_ID_HQC_STATUS:
+    case MAVLINK_MSG_ID_CRYPTO_PKT:   // si usas el wrapper ASCON
+        return true;
+    default:
+        return false;
+    }
+}
+
+// ===============================================================
+// Instala clave de firmado MAVLink2 en el canal actual
+// ===============================================================
+void GCS_MAVLINK_Copter::install_signing_key_(uint8_t link_id, const uint8_t key32[32])
+{
+    const mavlink_channel_t ch = (mavlink_channel_t)this->chan;
+    mavlink_status_t *st = mavlink_get_channel_status(ch);
+    if (!st) {
+        send_text(MAV_SEVERITY_WARNING, "SIGN: no channel status");
+        return;
+    }
+
+    static mavlink_signing_t signing_store[MAVLINK_COMM_NUM_BUFFERS];
+    mavlink_signing_t *S = &signing_store[(int)ch];
+    memset(S, 0, sizeof(*S));
+    memcpy(S->secret_key, key32, 32);
+    S->link_id   = link_id ? link_id : 1;
+    S->timestamp = 0; // acepta el primer ts del GCS
+    S->flags     = MAVLINK_SIGNING_FLAG_SIGN_OUTGOING;
+
+    st->signing = S;
+
+#if defined(MAVLINK_SIGNING_ALLOW_UNSIGNED_CALLBACK)
+    // el parser tendrá la misma allowlist que tú
+    st->accept_unsigned_callback = &GCS_MAVLINK_Copter::accept_unsigned_cb;
+#endif
+
+    send_text(MAV_SEVERITY_INFO,
+              "SIGN: ch=%d installed link_id=%u key[:4]=%02X%02X%02X%02X",
+              (int)ch, (unsigned)S->link_id, key32[0], key32[1], key32[2], key32[3]);
+
+    // dump de estado del canal
+    send_text(MAV_SEVERITY_DEBUG,
+              "SIGN dbg: st=%p S=%p flags=0x%02X ts=%llu",
+              (void*)st, (void*)st->signing,
+              st->signing ? st->signing->flags : 0,
+              st->signing ? (unsigned long long)st->signing->timestamp : 0ULL);
+}
+
+// ===============================================================
+// FINISH: verifica tag, deriva claves y activa firmado
+// ===============================================================
+void GCS_MAVLINK_Copter::handle_hqc_finish(const mavlink_message_t &msg)
 {
     mavlink_hqc_finish_t fin{};
     mavlink_msg_hqc_finish_decode(&msg, &fin);
 
-    send_text(MAV_SEVERITY_INFO,
-              "HQC_FINISH sid=%llu len=%u",
-              (unsigned long long)fin.session_id,
-              (unsigned)fin.tag_len);
-
-    if (fin.session_id != hqc_.session_id || fin.tag_len != 32) {
-        send_hqc_status(HQC_KEX_BAD_LEN, /*detail=*/9, /*value=*/0);
+    // Debemos tener una sesión HQC en curso y SS calculada
+    if (hqc_.session_id == 0 || hqc_.pk_len == 0 || hqc_.ct_len == 0) {
+        send_text(MAV_SEVERITY_WARNING, "HQC_FIN: no ctx");
         return;
     }
 
-    // ---- transcript v1 (tu mismo layout, packed) ----
-    struct __attribute__((packed)) FinishBlob {
-        uint8_t  version, suite_id;
-        uint64_t session_id;
-        uint8_t  salt[16];
-        uint32_t pk_len, ct_len, pk_crc, ct_crc;
-        uint16_t mtu;
-        uint8_t  window, alg;
-    } blob;
+    // 1) PRK = HMAC(salt, SS[64])
+    uint8_t prk[32];
+    hkdf_sha256_extract(hqc_.salt, 16, hqc_.ss, 64, prk);
 
-    blob.version    = hqc_.version;
-    blob.suite_id   = hqc_.suite_id;
-    blob.session_id = hqc_.session_id;
-    memcpy(blob.salt, hqc_.salt, 16);
-    blob.pk_len     = hqc_.pk_len;
-    blob.ct_len     = hqc_.ct_len;
-    blob.pk_crc     = hqc_.pk_crc;
-    blob.ct_crc     = hqc_.ct_crc;
-    blob.mtu        = hqc_.mtu;
-    blob.window     = hqc_.window;
-    blob.alg        = AP_AEAD_ALG_ASCON128;
+    // 2) k_finish y TAG esperado
+    static const uint8_t info_finish[] = "ardupilot-hqc-v1:finish";
+    uint8_t k_finish[32];
+    hkdf_sha256_expand(prk, info_finish, sizeof(info_finish)-1, k_finish, 32);
 
-    // ---- LOG entrada para comparar con GCS ----
-    send_text(MAV_SEVERITY_INFO, "FIN mtu=%u win=%u pk_len=%u ct_len=%u",
-              (unsigned)blob.mtu, (unsigned)blob.window, (unsigned)blob.pk_len, (unsigned)blob.ct_len);
-    send_text(MAV_SEVERITY_INFO, "FIN crc pk=%08x ct=%08x", blob.pk_crc, blob.ct_crc);
-    print_hex16(this, "FIN salt", blob.salt);
-    print_hex16(this, "FIN tag_rx", fin.tag);
+    // blob EXACTO como en el GCS:
+    // <BB Q 16s I I I I H B B>
+    //  ver Python: struct.pack("<BBQ16sIIIIHBB", ...)
+    uint8_t blob[1+1+8 +16 +4+4+4+4 +2+1+1];
+    uint8_t *p = blob;
+    *p++ = (uint8_t)hqc_.version;                 // B
+    *p++ = (uint8_t)hqc_.suite_id;                // B
+    memcpy(p, &hqc_.session_id, 8); p += 8;       // Q
+    memcpy(p,  hqc_.salt, 16);      p += 16;      // 16s
+    memcpy(p, &hqc_.pk_len, 4);     p += 4;       // I
+    memcpy(p, &hqc_.ct_len, 4);     p += 4;       // I
+    memcpy(p, &hqc_.pk_crc, 4);     p += 4;       // I
+    memcpy(p, &hqc_.ct_crc, 4);     p += 4;       // I
+    const uint16_t CHUNK  = hqc_.mtu ? hqc_.mtu : 220;     // H  (tamaño de fragmento)
+    memcpy(p, &CHUNK, 2);           p += 2;
+    const uint8_t  WINDOW = hqc_.window;                       // B
+    *p++ = WINDOW;
+    const uint8_t  ALG    = 1;                                  // B (ASCON128)
+    *p++ = ALG;
 
-    // ---- HKDF con SS=64 (HQC-128 usa SS de 64 bytes) ----
-    uint8_t prk64[32], kf64[32], tag64[32];
-    hkdf_sha256_extract(hqc_.salt, 16, hqc_.ss, 64, prk64);
-    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:finish", 23, kf64, 32);
-    hmac_sha256(kf64, 32, (const uint8_t*)&blob, sizeof(blob), tag64);
+    uint8_t tag_exp[32];
+    hmac_sha256(k_finish, 32, blob, sizeof(blob), tag_exp);
 
-    print_hex16(this, "FIN kf64", kf64);
-    print_hex16(this, "FIN tag_exp64", tag64);
-
-    bool ok = (memcmp(tag64, fin.tag, 32) == 0);
-
-#if 1 // compat temporal: reintenta con SS=32 si falla (para detectar desalineaciones)
-    uint8_t prk32[32], kf32[32], tag32[32];
-    bool ok32 = false;
-    if (!ok) {
-        hkdf_sha256_extract(hqc_.salt, 16, hqc_.ss, 32, prk32);
-        hkdf_sha256_expand(prk32, (const uint8_t*)"ardupilot-hqc-v1:finish", 23, kf32, 32);
-        hmac_sha256(kf32, 32, (const uint8_t*)&blob, sizeof(blob), tag32);
-        print_hex16(this, "FIN kf32", kf32);
-        print_hex16(this, "FIN tag_exp32", tag32);
-        ok32 = (memcmp(tag32, fin.tag, 32) == 0);
-    }
-    if (!ok && ok32) {
-        send_text(MAV_SEVERITY_WARNING, "HQC_FINISH compat: SS=32 matched; please fix to SS=64");
-        // seguimos con prk32 para derivar claves y no bloquear
-        memcpy(prk64, prk32, 32);
-        ok = true;
-    }
-#endif
-
-    if (!ok) {
-        // NUNCA silencio: status BAD_MAC
-        send_hqc_status(HQC_KEX_BAD_LEN, /*detail=*/10, /*value=*/0);
-        send_text(MAV_SEVERITY_WARNING, "HQC_FINISH BAD_MAC");
+    const uint8_t taglen = (fin.tag_len < 32) ? fin.tag_len : 32;
+    if (memcmp(fin.tag, tag_exp, taglen) != 0) {
+        send_text(MAV_SEVERITY_WARNING, "HQC_FIN: bad tag");
         return;
     }
 
-    // --- derivaciones finales con PRK válido (64 normal o 32 compat) ---
-    uint8_t k_sig32[32], k_tx[16], k_rx[16], n_tx[16], n_rx[16];
-    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:sign",          22, k_sig32, 32);
-    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:enc:fc->gcs",   26, k_tx, 16);
-    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:enc:gcs->fc",   26, k_rx, 16);
-    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:nonce:fc->gcs", 28, n_tx, 16);
-    hkdf_sha256_expand(prk64, (const uint8_t*)"ardupilot-hqc-v1:nonce:gcs->fc", 28, n_rx, 16);
+    // 3) Derivar claves y marcar sesión activa
+    derive_session_keys_from_ss(hqc_.ss, 64, hqc_.salt);
 
-    // instala claves (tu layout)
-    memcpy(_sess.key,        k_rx, 16);
-    memcpy(_sess.nonce_base, n_rx, 16);
-    _sess.session_id = (uint8_t)_crypto_session.get();
     _sess.active     = true;
+    _sess.session_id = (uint8_t)(hqc_.session_id & 0xFF); // tu CRYPTO_PKT usa 8 bits
     _sess.start_ms   = now_ms();
-    _sess.rx_last_seq = 0;
-    _sess.tx_next_seq = 1;
 
-    // firma MAVLink2
-    static mavlink_signing_streams_t g_streams{};
-    static mavlink_signing_t s{}; memset(&s,0,sizeof(s));
-    memcpy(s.secret_key, k_sig32, 32);
-    s.link_id = _sess.session_id;
-    s.flags   = MAVLINK_SIGNING_FLAG_SIGN_OUTGOING;
-    s.accept_unsigned_callback = &GCS_MAVLINK_Copter::accept_unsigned_cb;
-    memset(&g_streams, 0, sizeof(g_streams));   // reset de anti-replay por link_id
+    // 4) Instalar firmado MAVLink2 con link_id=1 (coincide con tu GCS)
+    install_signing_key_(/*link_id*/1, _sess.k_sig);
 
-    mavlink_status_t* st = mavlink_get_channel_status(chan);
-    st->signing         = &s;
-    st->signing_streams = &g_streams;
+    send_text(MAV_SEVERITY_INFO,
+              "FIN OK; link=1 SIG32[:4]=%02X%02X%02X%02X key[:4]=%02X%02X%02X%02X",
+              _sess.k_sig[0], _sess.k_sig[1], _sess.k_sig[2], _sess.k_sig[3],
+              _sess.key[0],   _sess.key[1],   _sess.key[2],   _sess.key[3]);
 
-    send_hqc_status(HQC_KEX_OK, /*detail=*/0, /*value=*/0);
-    send_text(MAV_SEVERITY_INFO, "HQC_FINISH OK; gate/signing enabled link_id=%u", (unsigned)s.link_id);
+    // 5) STATUS OK al GCS
+    send_hqc_status(HQC_KEX_OK, /*value*/0, /*detail*/0);
+    
 }
+
+
 
 
 
@@ -1225,6 +1388,11 @@ if (crypto_gate_open()) {
         return; // drop
     }
 }
+#endif
+#if defined(MAVLINK2)
+    const bool rx_signed = (msg.incompat_flags & MAVLINK_IFLAG_SIGNED) != 0;
+    send_text(MAV_SEVERITY_DEBUG, "RX ch=%d msgid=%u signed=%u",
+              (int)this->chan, (unsigned)msg.msgid, (unsigned)rx_signed);
 #endif
     GCS_MAVLINK::packetReceived(status, msg);
 }
@@ -2079,7 +2247,13 @@ void GCS_MAVLINK_Copter::handle_message_set_position_target_global_int(const mav
 
 void GCS_MAVLINK_Copter::handle_message(const mavlink_message_t &msg)
 {
-
+    if (_signing_required) {                 // bool miembro; set en FINISH
+        const bool signed_msg = (msg.incompat_flags & MAVLINK_IFLAG_SIGNED) != 0;
+        if (!signed_msg && !_allow_unsigned_msgid(msg.msgid)) {
+            // drop silencioso (anti-spam)
+            return;
+        }
+    }
     switch (msg.msgid) {
 #if MODE_GUIDED_ENABLED
     case MAVLINK_MSG_ID_SET_ATTITUDE_TARGET:
