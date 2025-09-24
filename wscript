@@ -889,7 +889,7 @@ def build(bld):
         use=['mavlink', 'AP_Crypto', 'dronecan'],
         cxxflags=['-include', 'ap_config.h'],
     )
-
+    
     _load_pre_build(bld)
 
     if bld.get_board().with_can:
@@ -972,6 +972,42 @@ def build(bld):
         name='AP_Crypto',
     )
 
+    # --- PQClean HQC-128 (vendor) ---
+    hqc_base = 'libraries/AP_KEM/vendor/pqclean/crypto_kem/hqc-128/clean'
+    pqclean_common = 'libraries/AP_KEM/vendor/pqclean/common'  # si no existe, quítalo del includes
+
+    # Recolecta los .c del HQC-128 clean + tu randombytes
+    hqc_srcs = bld.path.ant_glob(hqc_base + '/*.c', quiet=False)
+    # añade cualquier fuente común (sha3/keccak/util) si están presentes:
+    hqc_srcs += bld.path.ant_glob(pqclean_common + '/*.c', quiet=True)
+    # añade tu implementación de randombytes:
+    hqc_srcs += ['libraries/AP_KEM/randombytes_linux.c']
+
+    # Librería estática con los C de PQClean (sin C++)
+    bld.stlib(
+        target   = 'AP_KEM_vendor',
+        source   = hqc_srcs,
+        includes = ['libraries', hqc_base, pqclean_common],
+        cflags   = ['-std=gnu11', '-DPQCLEAN_NAMESPACE=PQCLEAN_HQC128_CLEAN'],
+        name     = 'AP_KEM_vendor',
+    )
+
+    # Tu wrapper C++ que expone ap_kem_keypair/enc/dec y usa PQClean por debajo
+    bld.stlib(
+        target   = 'AP_KEM',
+        source   = ['libraries/AP_KEM/ap_kem.cpp'],
+        includes = ['libraries', hqc_base, pqclean_common],
+        cxxflags = ['-include', 'ap_config.h'],
+        use      = ['AP_KEM_vendor'],   # <- clave: depende de los .c de PQClean
+        name     = 'AP_KEM',
+    )
+
+    # Asegura que todas las libs de vehículo y binarios hagan 'use' de AP_KEM
+    if 'use' not in bld.env.AP_LIBRARIES_OBJECTS_KW:
+        bld.env.AP_LIBRARIES_OBJECTS_KW['use'] = []
+    for lib in ('AP_KEM',):
+        if lib not in bld.env.AP_LIBRARIES_OBJECTS_KW['use']:
+            bld.env.AP_LIBRARIES_OBJECTS_KW['use'].append(lib)
     # SITL: asegurar -ldl en link
     if bld.env.BOARD == 'sitl':
         bld.env.append_unique('LIB', ['dl'])

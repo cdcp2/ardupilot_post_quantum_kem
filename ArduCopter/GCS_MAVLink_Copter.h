@@ -59,10 +59,7 @@ struct CryptoSession {
     }
 };
 
-// Forward decls
-struct AP_AEAD_Sizes;
-class  AP_CryptoAEAD;
-AP_CryptoAEAD* AP_Crypto_GetAEAD_Ascon();
+
 
 class GCS_MAVLINK_Copter : public GCS_MAVLINK
 {
@@ -70,19 +67,12 @@ public:
     using GCS_MAVLINK::GCS_MAVLINK;
 
     // Handlers HQC y CRYPTO
-    void handle_crypto_pkt(const mavlink_message_t& msg);
     void handle_hqc_hello(const mavlink_message_t& msg);
     void handle_hqc_pk_chunk(const mavlink_message_t& msg);
     void handle_hqc_ct_ack(const mavlink_message_t& msg);
     void handle_hqc_finish(const mavlink_message_t& msg);
 
-    // Envoltura para enviar un inner MAVLink cifrado
-    bool send_crypto_pkt_wrapped(const mavlink_message_t& inner);
 
-    // Tabla de parámetros de ESTA clase:
-    static const AP_Param::GroupInfo var_info_crypto[];
-
-    bool crypto_params_registered_ = false;
 
 protected:
 
@@ -197,22 +187,9 @@ private:
 #endif
 
     // -------- Utilidades ----------
-    bool  crypto_gate_open() const;
-    bool  crypto_rate_allow();
-
-    // CHANGED: nonces direccionales (antes: nonce_from_seq())
-    void  nonce_from_seq_tx(uint16_t seq, uint8_t out16[16]) const; // NEW
-    void  nonce_from_seq_rx(uint16_t seq, uint8_t out16[16]) const; // NEW
-
-    // NEW: AD para AEAD (igual que antes, pero mantenla pública si la usas fuera)
-    void  build_ad(uint8_t session, uint16_t seq, uint8_t out8[8]) const;
 
     // NEW: verificación/actualización de anti-replay para CRYPTO_PKT
     bool  window_accept_and_update(uint16_t seq);
-
-    // NEW: callback MAVLink para permitir ciertos mensajes sin firma
-    // (firma requerida en MAVLink v2; prototipo coincide con mavlink_accept_unsigned_t)
-    static bool accept_unsigned_cb(const mavlink_status_t* status, uint32_t msgid);
 
     // NEW: allowlist de mensajes sin firma
     static bool is_allowlisted_unsigned(uint32_t msgid);
@@ -220,21 +197,6 @@ private:
     // NEW: derivación desde SS (HKDF) — declarada aquí si la usas desde varios .cpp
     void  derive_session_keys_from_ss(const uint8_t* ss, size_t ss_len,
                                       const uint8_t salt16[16]);
-
-    // -------- Backend AEAD (ASCON) ----------
-    bool aead_ready_ = false;
-    bool aead_init_backend();
-    bool aead_sizes(AP_AEAD_Sizes& out) const;
-    bool aead_encrypt(uint8_t* c, size_t& clen,
-                      const uint8_t* m, size_t mlen,
-                      const uint8_t* ad, size_t adlen,
-                      const uint8_t* npub,
-                      const uint8_t* key);
-    bool aead_decrypt(uint8_t* m, size_t& mlen,
-                      const uint8_t* c, size_t clen,
-                      const uint8_t* ad, size_t adlen,
-                      const uint8_t* npub,
-                      const uint8_t* key);
 
     // -------- Backend KEM (HQC) ----------
     bool hqc_ready_ = false;
@@ -289,13 +251,6 @@ private:
         ~HqcRxBuf(){ reset(); }
     } hqc_;
 
-    // -------- Parámetros/Gate ----------
-    AP_Int8   _crypto_on;
-    AP_Int8   _crypto_alg;
-    AP_Int32  _crypto_ttl_ms;
-    AP_Int16  _crypto_rate_pps;
-    AP_Int8   _crypto_session;
-
     // -------- Estado runtime ----------
     CryptoSession  _sess;
     uint32_t       _rate_tokens = 0;
@@ -309,8 +264,7 @@ private:
     void nonce_from_seq(uint16_t seq, uint8_t out16[16]) const;
     void derive_session_key_from_ss(const uint8_t ss[32], const uint8_t salt16[16], uint8_t key16_out[16], uint8_t nonce_base16_out[16]);
     void send_hqc_status(uint8_t status, uint32_t value = 0, uint8_t detail = 0);
-    void install_signing_key_(uint8_t link_id, const uint8_t key32[32]);
-    bool _signing_required{false};
+    void install_signing_key_(const uint8_t key32[32]);
 
     // Hook de inicialización
     void crypto_init_if_needed();
