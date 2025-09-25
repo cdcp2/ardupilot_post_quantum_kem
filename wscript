@@ -889,7 +889,7 @@ def build(bld):
         use=['mavlink', 'AP_Crypto', 'dronecan'],
         cxxflags=['-include', 'ap_config.h'],
     )
-    
+
     _load_pre_build(bld)
 
     if bld.get_board().with_can:
@@ -974,7 +974,7 @@ def build(bld):
 
     # --- PQClean HQC-128 (vendor) ---
     hqc_base = 'libraries/AP_KEM/vendor/pqclean/crypto_kem/hqc-128/clean'
-    pqclean_common = 'libraries/AP_KEM/vendor/pqclean/common'  # si no existe, quítalo del includes
+    pqclean_common = 'libraries/AP_KEM/vendor/pqclean/common'  
 
     # Recolecta los .c del HQC-128 clean + tu randombytes
     hqc_srcs = bld.path.ant_glob(hqc_base + '/*.c', quiet=False)

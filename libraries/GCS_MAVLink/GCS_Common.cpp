@@ -148,6 +148,8 @@ bool GCS_MAVLINK::init(uint8_t instance)
         return false;
     }
 
+    kemtls_pdk_bootstrap_copy_if_missing();
+
     // find instance of MAVLink protocol; the protocol_match method in
     // AP_SerialManager means this will match MAVLink2 and MAVLinkHL,
     // too:

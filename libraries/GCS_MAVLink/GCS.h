@@ -32,6 +32,15 @@
 
 #include "ap_message.h"
 
+#include <vector>
+
+struct KEMTLS_PDK_State {
+    bool have_pdk = false;
+    uint8_t suite_id = 1;      // 1=hqc-128, 2=hqc-192, 3=hqc-256
+    std::vector<uint8_t> pk;   // PK precompartida del GCS
+    uint8_t fp[32] = {0};      // huella SHA-256 de la PK
+};
+
 #define GCS_DEBUG_SEND_MESSAGE_TIMINGS 0
 
 #ifndef HAL_GCS_ALLOW_PARAM_SET_DEFAULT
@@ -187,6 +196,13 @@ public:
     // accessors used to retrieve objects used for parsing incoming messages:
     mavlink_message_t *channel_buffer() { return &_channel_buffer; }
     mavlink_status_t *channel_status() { return &_channel_status; }
+
+
+    void kemtls_pdk_load();    // llama en init
+    bool kemtls_has_pdk() const { return kemtls_.have_pdk; }
+    const std::vector<uint8_t>& kemtls_pdk_pk() const { return kemtls_.pk; }
+    uint8_t kemtls_suite() const { return kemtls_.suite_id; }
+    void kemtls_pdk_bootstrap_copy_if_missing();
 
     void        update_receive(uint32_t max_time_us=1000);
     void        update_send();
@@ -785,7 +801,7 @@ protected:
     bool location_from_command_t(const mavlink_command_int_t &in, Location &out);
 
 private:
-
+    KEMTLS_PDK_State kemtls_;
     // define the two objects used for parsing incoming messages:
     mavlink_message_t _channel_buffer;
     mavlink_status_t _channel_status;
