@@ -10,54 +10,54 @@
 #include "defines.h"
 #include <cstddef>
 #include <cstdint>
-#include <vector>
-#include <unordered_map>
+// #include <vector>
+// #include <unordered_map>
 
 
-// ---------- Sesión de cifrado (tras HQC) ----------
-struct CryptoSession {
-    bool     active = false;
-    uint8_t  session_id = 0;
-    uint16_t rx_last_seq = 0;
-    uint16_t tx_next_seq = 1;
-    uint64_t start_ms = 0;
+// // ---------- Sesión de cifrado (tras HQC) ----------
+// struct CryptoSession {
+//     bool     active = false;
+//     uint8_t  session_id = 0;
+//     uint16_t rx_last_seq = 0;
+//     uint16_t tx_next_seq = 1;
+//     uint64_t start_ms = 0;
 
-    // DEPRECATED (mantener mientras migras a claves direccionales)
-    uint8_t  key[16] = {0};
-    uint8_t  nonce_base[16] = {0};
+//     // DEPRECATED (mantener mientras migras a claves direccionales)
+//     uint8_t  key[16] = {0};
+//     uint8_t  nonce_base[16] = {0};
 
-    //claves y nonces direccionales para AEAD
-    uint8_t  key_tx[16] = {0};        // FC -> GCS
-    uint8_t  key_rx[16] = {0};        // GCS -> FC
-    uint8_t  nonce_base_tx[16] = {0}; // FC -> GCS
-    uint8_t  nonce_base_rx[16] = {0}; // GCS -> FC
+//     //claves y nonces direccionales para AEAD
+//     uint8_t  key_tx[16] = {0};        // FC -> GCS
+//     uint8_t  key_rx[16] = {0};        // GCS -> FC
+//     uint8_t  nonce_base_tx[16] = {0}; // FC -> GCS
+//     uint8_t  nonce_base_rx[16] = {0}; // GCS -> FC
 
-    //clave de firmado MAVLink v2 (32B)
-    uint8_t  k_sig[32] = {0};
+//     //clave de firmado MAVLink v2 (32B)
+//     uint8_t  k_sig[32] = {0};
 
-    //anti-replay para CRYPTO_PKT (ventana deslizante de 64)
-    uint64_t replay_window = 0;  // bitmap de vistos
-    uint16_t replay_base   = 0;  // secuencia base de la ventana
+//     //anti-replay para CRYPTO_PKT (ventana deslizante de 64)
+//     uint64_t replay_window = 0;  // bitmap de vistos
+//     uint16_t replay_base   = 0;  // secuencia base de la ventana
 
-    void set_keys(const uint8_t ktx[16], const uint8_t krx[16],
-                    const uint8_t ntx[16], const uint8_t nrx[16])
-    {
-        memcpy(key_tx, ktx, 16);
-        memcpy(key_rx, krx, 16);
-        memcpy(nonce_base_tx, ntx, 16);
-        memcpy(nonce_base_rx, nrx, 16);
-        // reset de estado de sesión/anti-replay
-        replay_window = 0;
-        replay_base   = 0;
-        rx_last_seq   = 0;
-        tx_next_seq   = 1;
-    }
+//     void set_keys(const uint8_t ktx[16], const uint8_t krx[16],
+//                     const uint8_t ntx[16], const uint8_t nrx[16])
+//     {
+//         memcpy(key_tx, ktx, 16);
+//         memcpy(key_rx, krx, 16);
+//         memcpy(nonce_base_tx, ntx, 16);
+//         memcpy(nonce_base_rx, nrx, 16);
+//         // reset de estado de sesión/anti-replay
+//         replay_window = 0;
+//         replay_base   = 0;
+//         rx_last_seq   = 0;
+//         tx_next_seq   = 1;
+//     }
 
-    void set_signing_key(const uint8_t ksig[32])
-    {
-        memcpy(k_sig, ksig, 32);
-    }
-};
+//     void set_signing_key(const uint8_t ksig[32])
+//     {
+//         memcpy(k_sig, ksig, 32);
+//     }
+// };
 
 
 
@@ -66,11 +66,11 @@ class GCS_MAVLINK_Copter : public GCS_MAVLINK
 public:
     using GCS_MAVLINK::GCS_MAVLINK;
 
-    // Handlers HQC y CRYPTO
-    void handle_hqc_hello(const mavlink_message_t& msg);
-    void handle_hqc_pk_chunk(const mavlink_message_t& msg);
-    void handle_hqc_ct_ack(const mavlink_message_t& msg);
-    void handle_hqc_finish(const mavlink_message_t& msg);
+    // // Handlers HQC y CRYPTO
+    // void handle_hqc_hello(const mavlink_message_t& msg);
+    // void handle_hqc_pk_chunk(const mavlink_message_t& msg);
+    // void handle_hqc_ct_ack(const mavlink_message_t& msg);
+    // void handle_hqc_finish(const mavlink_message_t& msg);
 
 
 
@@ -186,86 +186,86 @@ private:
     MAV_RESULT handle_MAV_CMD_DO_WINCH(const mavlink_command_int_t &packet);
 #endif
 
-    // -------- Utilidades ----------
+    // // -------- Utilidades ----------
 
-    // NEW: verificación/actualización de anti-replay para CRYPTO_PKT
-    bool  window_accept_and_update(uint16_t seq);
+    // // NEW: verificación/actualización de anti-replay para CRYPTO_PKT
+    // bool  window_accept_and_update(uint16_t seq);
 
-    // NEW: allowlist de mensajes sin firma
-    static bool is_allowlisted_unsigned(uint32_t msgid);
+    // // NEW: allowlist de mensajes sin firma
+    // static bool is_allowlisted_unsigned(uint32_t msgid);
 
-    // NEW: derivación desde SS (HKDF) — declarada aquí si la usas desde varios .cpp
-    void  derive_session_keys_from_ss(const uint8_t* ss, size_t ss_len,
-                                      const uint8_t salt16[16]);
+    // // NEW: derivación desde SS (HKDF) — declarada aquí si la usas desde varios .cpp
+    // void  derive_session_keys_from_ss(const uint8_t* ss, size_t ss_len,
+    //                                   const uint8_t salt16[16]);
 
-    // -------- Backend KEM (HQC) ----------
-    bool hqc_ready_ = false;
-    bool hqc_init_backend();
-    typedef int (*hqc_enc_t)(uint8_t* ct, uint8_t* ss, const uint8_t* pk);
-    hqc_enc_t hqc_enc_ = nullptr;
+    // // -------- Backend KEM (HQC) ----------
+    // bool hqc_ready_ = false;
+    // bool hqc_init_backend();
+    // typedef int (*hqc_enc_t)(uint8_t* ct, uint8_t* ss, const uint8_t* pk);
+    // hqc_enc_t hqc_enc_ = nullptr;
 
-    // -------- Ensamblado de PK/CT ----------
-    struct HqcRxBuf {
-        uint64_t session_id = 0;
-        uint32_t pk_len = 0;
-        uint32_t ct_len = 0;
-        uint8_t  version = 1;
-        uint8_t  suite_id = 1; // 1=hqc-128
-        uint8_t  flags = 0;
-        uint8_t  salt[16] = {0};
+    // // -------- Ensamblado de PK/CT ----------
+    // struct HqcRxBuf {
+    //     uint64_t session_id = 0;
+    //     uint32_t pk_len = 0;
+    //     uint32_t ct_len = 0;
+    //     uint8_t  version = 1;
+    //     uint8_t  suite_id = 1; // 1=hqc-128
+    //     uint8_t  flags = 0;
+    //     uint8_t  salt[16] = {0};
 
-        // NEW: guarda SS y CRCs para FINISH
-        uint8_t  ss[64] = {0};     // tamaño HQC-128; ajusta si otro suite
-        uint32_t pk_crc = 0;       // CRC32 de PK
-        uint32_t ct_crc = 0;       // CRC32 de CT
+    //     // NEW: guarda SS y CRCs para FINISH
+    //     uint8_t  ss[64] = {0};     // tamaño HQC-128; ajusta si otro suite
+    //     uint32_t pk_crc = 0;       // CRC32 de PK
+    //     uint32_t ct_crc = 0;       // CRC32 de CT
 
-        // Buffers dinámicos
-        uint8_t* pk = nullptr;
-        uint8_t* ct = nullptr;
-        uint32_t pk_rcvd = 0;
-        uint32_t ct_sent = 0;
+    //     // Buffers dinámicos
+    //     uint8_t* pk = nullptr;
+    //     uint8_t* ct = nullptr;
+    //     uint32_t pk_rcvd = 0;
+    //     uint32_t ct_sent = 0;
 
-        // MTU/ventana negociada
-        uint16_t mtu = 220;
-        uint8_t  window = 8;
-        std::unordered_map<uint32_t, uint8_t> retries;
-        uint8_t  max_retries = 3;
+    //     // MTU/ventana negociada
+    //     uint16_t mtu = 220;
+    //     uint8_t  window = 8;
+    //     std::unordered_map<uint32_t, uint8_t> retries;
+    //     uint8_t  max_retries = 3;
 
-        uint32_t ct_chunks() const { return (ct_len + (uint32_t)mtu - 1U) / (uint32_t)mtu; }
-        std::vector<uint8_t> ct_acked;
+    //     uint32_t ct_chunks() const { return (ct_len + (uint32_t)mtu - 1U) / (uint32_t)mtu; }
+    //     std::vector<uint8_t> ct_acked;
 
-        void reset() {
-            session_id = 0; pk_len = ct_len = 0;
-            version = 1; suite_id = 1; flags = 0;
-            memset(salt, 0, sizeof(salt));
-            memset(ss,   0, sizeof(ss));     // NEW
-            pk_crc = ct_crc = 0;             // NEW
-            if (pk) { free(pk); pk = nullptr; }
-            if (ct) { free(ct); ct = nullptr; }
-            pk_rcvd = 0; ct_sent = 0;
-            mtu = 220; window = 8;
-            retries.clear();
-            max_retries = 3;
-            ct_acked.clear();
-        }
-        ~HqcRxBuf(){ reset(); }
-    } hqc_;
+    //     void reset() {
+    //         session_id = 0; pk_len = ct_len = 0;
+    //         version = 1; suite_id = 1; flags = 0;
+    //         memset(salt, 0, sizeof(salt));
+    //         memset(ss,   0, sizeof(ss));     // NEW
+    //         pk_crc = ct_crc = 0;             // NEW
+    //         if (pk) { free(pk); pk = nullptr; }
+    //         if (ct) { free(ct); ct = nullptr; }
+    //         pk_rcvd = 0; ct_sent = 0;
+    //         mtu = 220; window = 8;
+    //         retries.clear();
+    //         max_retries = 3;
+    //         ct_acked.clear();
+    //     }
+    //     ~HqcRxBuf(){ reset(); }
+    // } hqc_;
 
-    // -------- Estado runtime ----------
-    CryptoSession  _sess;
-    uint32_t       _rate_tokens = 0;
-    uint32_t       _rate_last_ms = 0;
+    // // -------- Estado runtime ----------
+    // CryptoSession  _sess;
+    // uint32_t       _rate_tokens = 0;
+    // uint32_t       _rate_last_ms = 0;
 
-    // Envío de CT fragmentado y declaraciones
-    void send_hqc_ct_chunks();
-    void resend_ct_chunk_at(uint32_t off);
-    void resend_ct_window(uint32_t base, uint32_t mask);
-    void send_msg_raw(const mavlink_message_t& m);
-    void nonce_from_seq(uint16_t seq, uint8_t out16[16]) const;
-    void derive_session_key_from_ss(const uint8_t ss[32], const uint8_t salt16[16], uint8_t key16_out[16], uint8_t nonce_base16_out[16]);
-    void send_hqc_status(uint8_t status, uint32_t value = 0, uint8_t detail = 0);
-    void install_signing_key_(const uint8_t key32[32]);
+    // // Envío de CT fragmentado y declaraciones
+    // void send_hqc_ct_chunks();
+    // void resend_ct_chunk_at(uint32_t off);
+    // void resend_ct_window(uint32_t base, uint32_t mask);
+    // void send_msg_raw(const mavlink_message_t& m);
+    // void nonce_from_seq(uint16_t seq, uint8_t out16[16]) const;
+    // void derive_session_key_from_ss(const uint8_t ss[32], const uint8_t salt16[16], uint8_t key16_out[16], uint8_t nonce_base16_out[16]);
+    // void send_hqc_status(uint8_t status, uint32_t value = 0, uint8_t detail = 0);
+    // void install_signing_key_(const uint8_t key32[32]);
 
-    // Hook de inicialización
-    void crypto_init_if_needed();
+    // // Hook de inicialización
+    // void crypto_init_if_needed();
 };

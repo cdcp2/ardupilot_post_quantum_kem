@@ -4,6 +4,7 @@
 #pragma once
 
 #include "GCS_config.h"
+#include <cstdint>
 
 #if HAL_GCS_ENABLED
 
@@ -29,6 +30,9 @@
 #include <AP_Arming/AP_Arming_config.h>
 #include <AP_Airspeed/AP_Airspeed_config.h>
 #include <AP_Follow/AP_Follow.h>
+#include <unordered_map>
+#include <vector>
+#include <AP_KEM/ap_kem.h>
 
 #include "ap_message.h"
 
@@ -197,6 +201,11 @@ public:
     mavlink_message_t *channel_buffer() { return &_channel_buffer; }
     mavlink_status_t *channel_status() { return &_channel_status; }
 
+    // handle kem
+    void handle_hqc_hello(const mavlink_message_t& msg);
+    void handle_hqc_pk_chunk(const mavlink_message_t& msg);
+    void handle_hqc_ct_ack(const mavlink_message_t& msg);
+    void handle_hqc_finish(const mavlink_message_t& msg);
 
     void kemtls_pdk_load();    // llama en init
     bool kemtls_has_pdk() const { return kemtls_.have_pdk; }
@@ -801,6 +810,140 @@ protected:
     bool location_from_command_t(const mavlink_command_int_t &in, Location &out);
 
 private:
+    struct HqcRxBuf {
+        uint64_t session_id = 0;
+        uint32_t pk_len = 0;
+        uint32_t ct_len = 0;
+        uint8_t  version = 1;
+        uint8_t  suite_id = 1; // 1=hqc-128
+        uint8_t  flags = 0;
+        uint8_t  salt[16] = {0};
+
+        uint8_t  ss_s[64] = {0};  // server-side secret (PDK)
+        uint8_t  ss_e[64] = {0};  // ephemeral secret
+        uint32_t pke_crc = 0;     // CRC32 of pk_e
+        uint32_t cte_crc = 0;     // CRC32 of ct_e
+
+        uint8_t* pke = nullptr;   // pk_e buffer
+        uint8_t* cte = nullptr;   // ct_e buffer
+        uint32_t pke_rcvd = 0;
+        uint32_t cte_sent = 0;
+
+        uint8_t* pks = nullptr;   // pk_s (optional)
+        uint8_t* cts = nullptr;   // ct_s
+        uint32_t cts_sent = 0;
+
+        uint16_t mtu = 220;
+        uint8_t  window = 8;
+        std::unordered_map<uint32_t, uint8_t> retries;
+        uint8_t  max_retries = 3;
+
+        // SACK vectors
+        uint32_t ct_chunks() const { return (ct_len + (uint32_t)mtu - 1U) / (uint32_t)mtu; }
+        std::vector<uint8_t> ct_acked;
+
+        uint32_t cte_len = 0;
+        uint32_t cts_len = 0;
+        std::vector<uint8_t> cte_acked;
+        std::vector<uint8_t> cts_acked;
+
+        uint8_t  aead_offer = 1;
+        uint8_t  rc[32] = {0};
+        uint8_t  rs[32] = {0};
+
+        uint32_t pk_chunks() const { return (pk_len + (uint32_t)mtu - 1U) / (uint32_t)mtu; }
+        std::vector<uint8_t> pke_acked;
+
+        void reset() {
+            session_id = 0;
+            pk_len = 0;
+            ct_len = 0;
+            version = 1;
+            suite_id = 1;
+            flags = 0;
+            memset(salt, 0, sizeof(salt));
+            memset(ss_s, 0, sizeof(ss_s));
+            memset(ss_e, 0, sizeof(ss_e));
+            pke_crc = 0;
+            cte_crc = 0;
+
+            if (pke) { free(pke); pke = nullptr; }
+            if (cte) { free(cte); cte = nullptr; }
+            if (pks) { free(pks); pks = nullptr; }
+            if (cts) { free(cts); cts = nullptr; }
+
+            pke_rcvd = 0;
+            cte_sent = 0;
+            cts_sent = 0;
+
+            // defaults; will be renegotiated by HELLO
+            mtu = 220;
+            window = 8;
+            retries.clear();
+            max_retries = 3;
+
+            pke_acked.clear();
+            pke_acked.shrink_to_fit();
+
+            cte_len = 0;
+            cts_len = 0;
+            cte_acked.clear();
+            cte_acked.shrink_to_fit();
+            cts_acked.clear();
+            cts_acked.shrink_to_fit();
+        }
+
+        ~HqcRxBuf() { reset(); }
+    };
+
+    // High-level KEMTLS-PDK state machine for FC (autopilot)
+    enum class HqcState : uint8_t {
+        IDLE = 0, HELLO_RCVD, PK_RX, ENCAP_READY, ENCAP_DONE, CT_TX, WAIT_CF, ACTIVE, FAIL
+    };
+
+    struct HqcSession {
+        HqcState state = HqcState::IDLE;
+
+        HqcRxBuf rx;
+        uint32_t suite_kem = 1;
+        uint8_t  aead_alg  = 1;
+        uint16_t negotiated_mtu = 220;
+        uint8_t  negotiated_window = 8;
+
+        uint8_t th[32] = {0};
+        uint8_t ms[32] = {0};
+        uint8_t k_tx[16] = {0}, k_rx[16] = {0};
+        uint8_t iv_tx[12] = {0}, iv_rx[12] = {0};
+
+        // handshake timers & plumbing
+        uint32_t t_start  = 0;
+        uint32_t t_last_rx = 0;
+        uint32_t t_last_tx = 0;
+        uint8_t  retries_total = 0;
+
+        // owner + channel for mavlink buffer access
+        GCS_MAVLINK* owner = nullptr;
+        mavlink_channel_t chan_hs = MAVLINK_COMM_0;
+
+        // API
+        void reset();
+        void on_hello_start(GCS_MAVLINK* owner_, mavlink_channel_t ch, uint32_t now_ms);
+        void note_rx(uint32_t now_ms);
+        void start_encap();
+        void pump_tx(uint32_t now_ms);
+        void kick_acks();
+        void tick(uint32_t now_ms);
+
+        bool verify_finish_and_derive(const uint8_t peer_tag[32],
+                                    const uint8_t th[32],
+                                    const uint8_t ss_e[AP_KEM_BYTES],
+                                    const uint8_t ss_s[AP_KEM_BYTES],
+                                    const uint8_t salt[16],
+                                    uint64_t session_id_le);
+    } hqc_;
+
+    void clamp_kex_params(HqcRxBuf& rx);
+
     KEMTLS_PDK_State kemtls_;
     // define the two objects used for parsing incoming messages:
     mavlink_message_t _channel_buffer;

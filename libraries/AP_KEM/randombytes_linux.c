@@ -11,7 +11,6 @@
 void randombytes(unsigned char *x, unsigned long long xlen)
 {
 #if defined(__linux__)
-    // usa getrandom() si existe (no bloquea una vez inicializado)
     while (xlen > 0) {
         ssize_t n = getrandom(x, xlen, 0);
         if (n < 0) { if (errno == EINTR) continue; break; }
@@ -29,5 +28,4 @@ void randombytes(unsigned char *x, unsigned long long xlen)
         }
         close(fd);
     }
-    // Si falla, dejamos bytes tal cual; en hardware reemplaza por HAL/TRNG+DRBG.
 }

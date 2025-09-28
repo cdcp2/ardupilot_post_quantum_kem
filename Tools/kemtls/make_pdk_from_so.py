@@ -18,6 +18,7 @@ if rc != 0:
     print("keypair failed", file=sys.stderr); sys.exit(2)
 
 pk_bytes = bytes(bytearray(pk))
+sk_bytes = bytes(bytearray(sk))
 fp = hashlib.sha256(pk_bytes).digest()
 crc = zlib.crc32(pk_bytes) & 0xFFFFFFFF  # CRC-32 estándar
 
@@ -30,4 +31,15 @@ os.makedirs(os.path.dirname(out), exist_ok=True)
 with open(out, "wb") as f:
     f.write(hdr); f.write(pk_bytes)
 
+hdr_sk = struct.pack(
+    "<I H B B Q I 32s I",
+    0x544D454B, 1, 1, 0, int(time.time()),
+    SK_LEN,
+    hashlib.sha256(sk_bytes).digest(),
+    zlib.crc32(sk_bytes) & 0xFFFFFFFF
+)
+with open("/ws/ardupilot/ROMFS_custom/kemtls/kemtls_sk_default.bin","wb") as f:
+    f.write(hdr_sk); f.write(sk_bytes)
+
 print("Wrote", out, "pk_len=", PK_LEN)
+

@@ -1565,6 +1565,7 @@ void GCS_MAVLINK_InProgress::check_tasks()
 
 void GCS_MAVLINK::update_send()
 {
+    hqc_.tick(AP_HAL::millis()); 
 #if HAL_LOGGING_ENABLED
     if (!hal.scheduler->in_delay_callback()) {
         // AP_Logger will not send log data if we are armed.
@@ -4597,6 +4598,26 @@ void GCS_MAVLINK::handle_message(const mavlink_message_t &msg)
         AP::opendroneid().handle_msg(chan, msg);
         break;
 #endif
+    case MAVLINK_MSG_ID_HQC_HELLO:
+        send_text(MAV_SEVERITY_INFO,
+                    "recievd hello");
+        handle_hqc_hello(msg);
+        break;
+    case MAVLINK_MSG_ID_HQC_PK_CHUNK:
+        send_text(MAV_SEVERITY_INFO,
+                    "recievd pk chunk");
+        handle_hqc_pk_chunk(msg);
+        break;
+
+    case MAVLINK_MSG_ID_HQC_CT_ACK:
+        handle_hqc_ct_ack(msg);
+        break;
+
+    case MAVLINK_MSG_ID_HQC_FINISH:
+        send_text(MAV_SEVERITY_INFO,
+              "HQC_FINISH recv");
+        handle_hqc_finish(msg);
+        break;
 
 #if AP_SIGNED_FIRMWARE
     case MAVLINK_MSG_ID_SECURE_COMMAND:
