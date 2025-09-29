@@ -241,6 +241,64 @@ bool GCS_MAVLINK::signing_enabled(void) const
 }
 #endif  // AP_MAVLINK_SIGNING_ENABLED
 
+bool GCS_MAVLINK::enable_signing_with_key(const uint8_t key[32],
+                                          uint64_t initial_timestamp_10us,
+                                          bool persist)
+{
+
+    if (hal.util->get_soft_armed()) {
+        send_text(MAV_SEVERITY_WARNING, "ERROR: Won't setup signing when armed");
+        return false;
+    }
+
+    // If we want persistence, write the same FRAM blob 'SigningKey' that
+    if (persist) {
+        struct SigningKey k {};
+        k.magic = SIGNING_KEY_MAGIC;
+        k.timestamp = initial_timestamp_10us;           // 10us ticks since 2015-01-01
+        memcpy(k.secret_key, key, 32);
+
+        if (!signing_key_save(k)) {
+            send_text(MAV_SEVERITY_WARNING, "ERROR: Failed to save signing key");
+            return false;
+        }
+    }
+
+    // Activate on all links now (mirrors handle_setup_signing/load_signing_key)
+    for (uint8_t i = 0; i < MAVLINK_COMM_NUM_BUFFERS; i++) {
+        GCS_MAVLINK *backend = gcs().chan(i);
+        if (backend == nullptr) {
+            continue;
+        }
+
+        if (persist) {
+            // Use existing logic to set timestamp=stored+60s and wire callbacks
+            backend->load_signing_key();
+        } else {
+            // Runtime-only activation (no FRAM write), copied from load_signing_key()
+            memcpy(backend->signing.secret_key, key, 32);
+            backend->signing.link_id = (uint8_t)backend->chan;
+
+            // follow the same "+1 minute in 10us units" anti-replay practice
+            backend->signing.timestamp = initial_timestamp_10us + 60ULL * 100ULL * 1000ULL;
+
+            backend->signing.flags = MAVLINK_SIGNING_FLAG_SIGN_OUTGOING;
+            backend->signing.accept_unsigned_callback = accept_unsigned_callback;
+
+            backend->_channel_status.signing = &backend->signing;
+            backend->_channel_status.signing_streams = &signing_streams;
+        }
+    }
+
+    if (!signing_enabled()){
+        send_text(MAV_SEVERITY_WARNING, "ERROR: Failed enable signing");
+    } else {
+        send_text(MAV_SEVERITY_WARNING, "Signing enabled");
+    }
+
+    return true;
+}
+
 /*
   return packet overhead in bytes for a channel
  */

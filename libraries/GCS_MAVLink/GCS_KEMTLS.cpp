@@ -793,6 +793,7 @@ void GCS_MAVLINK::handle_hqc_finish(const mavlink_message_t& msg)
     HqcRxBuf &rx = hqc_.rx;
     const mavlink_channel_t ch = this->get_chan();
 
+    // Basic session/state checks
     if (in.session_id != rx.session_id) {
         send_hqc_status(ch, rx.session_id, 0, HQC_KEX_BAD_SEQ, 20);
         return;
@@ -810,6 +811,7 @@ void GCS_MAVLINK::handle_hqc_finish(const mavlink_message_t& msg)
         return;
     }
 
+    // Both CTs must be fully ACKed
     auto all_acked = [](const std::vector<uint8_t>& v)->bool {
         if (v.empty()) return false;
         for (uint8_t b : v) { if (!b) return false; }
@@ -823,12 +825,15 @@ void GCS_MAVLINK::handle_hqc_finish(const mavlink_message_t& msg)
     }
 
     // LE session_id for salt binding
-    uint64_t sid_le = 0; { uint8_t *p=(uint8_t*)&sid_le; for (int i=0;i<8;i++) p[i]=(uint8_t)((rx.session_id>>(8*i))&0xFF); }
+    uint64_t sid_le = 0; {
+        uint8_t *p=(uint8_t*)&sid_le;
+        for (int i=0;i<8;i++) p[i]=(uint8_t)((rx.session_id>>(8*i))&0xFF);
+    }
 
-    // Verify + derive (no activation)
+    // Verify FINISH and derive session material (no activation yet)
     const bool ok = hqc_.verify_finish_and_derive(in.tag, hqc_.th, rx.ss_e, rx.ss_s, rx.salt, sid_le);
     if (!ok) {
-        // Canonical fail in TH + notify + hygiene
+        // Canonical failure path: bind ABORT into TH, notify, and clean up
         th_add_abort(hqc_.th, rx.session_id, HQC_KEX_REJECTED, 31, 0);
         send_hqc_status(ch, rx.session_id, 0, HQC_KEX_REJECTED, 31);
         hqc_.reset();
@@ -839,12 +844,44 @@ void GCS_MAVLINK::handle_hqc_finish(const mavlink_message_t& msg)
     // Success path: bind FINISH canonically
     th_add_finish(hqc_.th, in);
 
+    // --- Derive MAVLink signing key and enable signing on this link ---
+    // PRK = HKDF-Extract( SHA256( salt || LE(session_id) ), ss_e || ss_s )
+    // k_sign = HKDF-Expand-Label(PRK, "sign", 32)
+    uint8_t k_sign[32] = {0};
+    {
+        uint8_t ikm[AP_KEM_BYTES*2];
+        memcpy(ikm, rx.ss_e, AP_KEM_BYTES);
+        memcpy(ikm+AP_KEM_BYTES, rx.ss_s, AP_KEM_BYTES);
+
+        uint8_t saltbuf[16+8], salt32[32], prk[32];
+        memcpy(saltbuf, rx.salt, 16);
+        memcpy(saltbuf+16, &sid_le, 8);
+        sha256(salt32, saltbuf, sizeof(saltbuf));
+
+        hkdf_extract(salt32, ikm, sizeof(ikm), prk);
+        hkdf_expand_label(prk, "sign", nullptr, 0, k_sign, sizeof(k_sign));
+
+        // wipe temps
+        memset(prk, 0, sizeof(prk));
+        memset(salt32, 0, sizeof(salt32));
+        memset(ikm, 0, sizeof(ikm));
+        memset(saltbuf, 0, sizeof(saltbuf));
+    }
+
+#if AP_MAVLINK_SIGNING_ENABLED
+    // Enable MAVLink2 signing on this channel immediately.
+    // initial_timestamp_10us = 0 (library runs in 10µs ticks from 2015-01-01 epoch, and will
+    // bump/learn; GPS later calls update_signing_timestamp()).
+    // persist=false keeps this session-ephemeral unless you decide to store it.
+    enable_signing_with_key(k_sign, /*initial_timestamp_10us=*/0ULL, /*persist=*/false);
+#endif
+
     // Free big buffers
     if (rx.pke) { free(rx.pke); rx.pke = nullptr; }
     if (rx.cte) { free(rx.cte); rx.cte = nullptr; }
     if (rx.cts) { free(rx.cts); rx.cts = nullptr; }
 
+    // Done
     hqc_.state = HqcState::ACTIVE;
     send_hqc_status(ch, rx.session_id, 0, HQC_KEX_OK, 0);
 }
-

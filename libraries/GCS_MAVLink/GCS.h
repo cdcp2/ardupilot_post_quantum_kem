@@ -1177,6 +1177,10 @@ private:
     void load_signing_key(void);
     bool signing_enabled(void) const;
     static void save_signing_timestamp(bool force_save_now);
+    bool enable_signing_with_key(const uint8_t key[32],
+                             uint64_t initial_timestamp_10us = 0,
+                             bool persist = true);
+
 #endif  // AP_MAVLINK_SIGNING_ENABLED
 
 #if HAL_MAVLINK_INTERVALS_FROM_FILES_ENABLED
