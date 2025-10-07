@@ -1065,17 +1065,6 @@ void GCS_MAVLINK_Copter::packetReceived(const mavlink_status_t &status,
         copter.avoidance_adsb.handle_msg(msg);
     }
 #endif
-#if defined(MAVLINK_MSG_ID_HQC_FINISH)
-    // if (msg.msgid == MAVLINK_MSG_ID_HQC_FINISH) {
-    //     handle_hqc_finish(msg);
-    //     return;
-    // }
-#endif
-#if defined(MAVLINK2)
-    const bool rx_signed = (msg.incompat_flags & MAVLINK_IFLAG_SIGNED) != 0;
-    send_text(MAV_SEVERITY_DEBUG, "RX ch=%d msgid=%u signed=%u",
-              (int)this->chan, (unsigned)msg.msgid, (unsigned)rx_signed);
-#endif
     GCS_MAVLINK::packetReceived(status, msg);
 }
 

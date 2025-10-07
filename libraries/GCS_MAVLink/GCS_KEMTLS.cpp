@@ -10,6 +10,9 @@ extern "C" {
 #include <AP_Filesystem/AP_Filesystem.h>
 #include <algorithm>
 #include <cstring>
+#include <memory>
+
+#include "include/mavlink/v2.0/mavlink_cipher.h"
 
 extern const AP_HAL::HAL& hal;
 
@@ -36,14 +39,20 @@ static inline void send_hqc_abort(mavlink_channel_t ch,
 static inline void le32(uint8_t out[4], uint32_t v){ out[0]=v&0xFF; out[1]=(v>>8)&0xFF; out[2]=(v>>16)&0xFF; out[3]=(v>>24)&0xFF; }
 static inline void le64(uint8_t out[8], uint64_t v){ for (int i=0;i<8;i++) out[i]=(uint8_t)((v>>(8*i))&0xFF); }
 
-static void th_update(uint8_t th[32], const uint8_t *msg, size_t len)
-{
-    // Simple: TH = SHA256( TH || msg )
-    uint8_t buf[32 + (len>0?len:0)];
-    memcpy(buf, th, 32);
-    if (len) memcpy(buf+32, msg, len);
-    sha256(th, buf, 32+len);
+static void th_update(uint8_t th[32], const uint8_t *msg, size_t len) {
+    if (len == 0) {
+        uint8_t buf[32];
+        memcpy(buf, th, 32);
+        sha256(th, buf, sizeof(buf));
+        return;
+    }
+    const size_t total = 32 + len;
+    std::unique_ptr<uint8_t[]> buf(new uint8_t[total]);
+    memcpy(buf.get(), th, 32);
+    memcpy(buf.get()+32, msg, len);
+    sha256(th, buf.get(), total);
 }
+
 
 static void th_add_finish(uint8_t th[32], const mavlink_hqc_finish_t& in)
 {
@@ -175,41 +184,106 @@ static void hkdf_extract(const uint8_t salt[32], const uint8_t *ikm, size_t ikm_
     hmac_sha256(salt, 32, ikm, ikm_len, prk_out);
 }
 
-// HKDF-Expand(PRK, info, L) for L<=32
-static void hkdf_expand(const uint8_t prk[32], const uint8_t *info, size_t info_len,
-                        uint8_t out[32], size_t L)
-{
-    uint8_t T[32];
-    uint8_t buf[32 + info_len + 1];
-    // single block since L<=32
-    memcpy(buf, info, info_len);
-    buf[info_len] = 0x01;
-    hmac_sha256(prk, 32, buf, info_len+1, T);
-    memcpy(out, T, L);
-    volatile uint8_t z = 0; (void)z; // keep compiler from optimizing away
-    memset(T, 0, sizeof(T));
-}
 
-// HKDF-Expand-Label style helper: out = HKDF-Expand(PRK, "ardupilot-hqc-v1:"||label||context, L)
 static void hkdf_expand_label(const uint8_t prk[32],
                               const char *label, const uint8_t *context, size_t ctx_len,
                               uint8_t *out, size_t L)
 {
-    const char prefix[] = "ardupilot-hqc-v1:";
-    uint8_t info[64];
-    size_t lp = sizeof(prefix)-1, ll = strlen(label);
-    size_t off=0;
-    memcpy(info+off, prefix, lp); off+=lp;
-    memcpy(info+off, label,  ll); off+=ll;
-    if (ctx_len) { memcpy(info+off, context, ctx_len); off+=ctx_len; }
-    hkdf_expand(prk, info, off, out, L);
+    if (L > 32) L = 32;
+
+    static constexpr char prefix[] = "ardupilot-hqc-v1:";
+    const size_t lp = sizeof(prefix) - 1;
+    const size_t ll = strlen(label);
+    const size_t info_len = lp + ll + ctx_len;
+
+    std::unique_ptr<uint8_t[]> info(new uint8_t[info_len + 1]);
+    size_t off = 0;
+    memcpy(info.get()+off, prefix, lp); off += lp;
+    memcpy(info.get()+off, label,  ll); off += ll;
+    if (ctx_len) { memcpy(info.get()+off, context, ctx_len); off += ctx_len; }
+    info.get()[off++] = 0x01;
+
+    uint8_t T[32];
+    hmac_sha256(prk, 32, info.get(), off, T);
+    memcpy(out, T, L);
+    memset(T, 0, sizeof(T));
 }
+
 
 static inline int ct_memcmp32(const uint8_t a[32], const uint8_t b[32]) {
     uint8_t r = 0;
     for (size_t i=0;i<32;i++) r |= (uint8_t)(a[i]^b[i]);
     return r; // 0 if equal
 }
+
+extern "C" bool mavlink_is_cleartext_msg(uint32_t msgid);
+
+extern "C" bool mavlink_is_cleartext_msg(uint32_t msgid)
+{
+    // keep your HQC handshake frames in clear:
+    switch (msgid) {
+    case 61000u: /*HQC_HELLO*/ case 61001u: /*HQC_HELLO_ACK*/
+    case 61002u: /*HQC_PK_CHUNK summary*/ case 61003u: /*HQC_CT_CHUNK summary*/
+    case 61004u: /*HQC_CT_ACK*/ case 61005u: /*HQC_FINISH*/
+    case 61006u: /*HQC_STATUS*/ case 61007u: /*HQC_ABORT*/
+        return true;
+    default: return false;
+    }
+}
+
+// map AP channels to our backend
+static GCS_MAVLINK* _backend_for(uint8_t chan)
+{
+    if (chan >= MAVLINK_COMM_NUM_BUFFERS) return nullptr;
+    return gcs().chan((mavlink_channel_t)chan);
+}
+
+static inline void fill_nonce_seq(uint8_t out[16], const uint8_t iv[12], uint32_t seq) {
+    memcpy(out, iv, 12);
+    out[12] = uint8_t(seq & 0xFF);
+    out[13] = uint8_t((seq >> 8) & 0xFF);
+    out[14] = uint8_t((seq >> 16) & 0xFF);
+    out[15] = uint8_t((seq >> 24) & 0xFF);
+}
+
+extern "C" bool mavlink_get_crypt_config(uint8_t chan, bool is_tx, uint8_t seq,
+                                         mav_crypt_alg_t *alg,
+                                         uint8_t key_out[32], uint8_t nonce_out[16],
+                                         uint32_t *counter0)
+{
+    GCS_MAVLINK* b = _backend_for(chan);
+    if (!b) { return false; }
+    auto &S = b->hqc_;
+    if (S.state != GCS_MAVLINK::HqcState::ACTIVE) { return false; }
+
+    if (!alg) { return false; }                   // defensive
+    *alg = MAV_CRYPT_ALG_CHACHA20;                // choose default
+
+    if (*alg == MAV_CRYPT_ALG_CHACHA20) {
+        const uint8_t *k  = is_tx ? S.k_chacha_tx : S.k_chacha_rx;
+        const uint8_t *iv = is_tx ? S.iv_tx       : S.iv_rx;
+        memcpy(key_out, k, 32);
+        fill_nonce_seq(nonce_out, iv, seq);  
+        *counter0 = 0;                       
+        return true;
+    } else if (*alg == MAV_CRYPT_ALG_AESCTR128) {
+        const uint8_t *k  = is_tx ? S.k_tx  : S.k_rx;  // 16 bytes
+        const uint8_t *iv = is_tx ? S.iv_tx : S.iv_rx; // 12-byte base
+        memcpy(key_out,   k,  16);
+        memcpy(nonce_out, iv, 12);
+        nonce_out[12] = (uint8_t)(seq & 0xFF);
+        nonce_out[13] = (uint8_t)((seq >> 8) & 0xFF);
+        nonce_out[14] = (uint8_t)((seq >> 16) & 0xFF);
+        nonce_out[15] = (uint8_t)((seq >> 24) & 0xFF);
+        *counter0 = 0;
+        return true;
+    }
+
+    // <— if we ever add other algs or the selection logic changes,
+    return false;
+}
+
+
 
 bool GCS_MAVLINK::HqcSession::verify_finish_and_derive(const uint8_t peer_tag[32],
                                           const uint8_t th_in[32],
@@ -218,50 +292,64 @@ bool GCS_MAVLINK::HqcSession::verify_finish_and_derive(const uint8_t peer_tag[32
                                           const uint8_t salt[16],
                                           uint64_t session_id_le)
 {
+    // ikm = ss_e || ss_s
     uint8_t ikm[AP_KEM_BYTES*2];
     memcpy(ikm, ss_e, AP_KEM_BYTES);
     memcpy(ikm+AP_KEM_BYTES, ss_s, AP_KEM_BYTES);
 
+    // salt32 = SHA256( salt || LE(session_id) )
     uint8_t saltbuf[16+8], salt32[32];
     memcpy(saltbuf,    salt, 16);
-    memcpy(saltbuf+16, &session_id_le, 8);  // LE encoded
-    sha256(salt32, saltbuf, sizeof(saltbuf));  // HKDF salt
+    memcpy(saltbuf+16, &session_id_le, 8);
+    sha256(salt32, saltbuf, sizeof(saltbuf));
 
+    // PRK = HKDF-Extract(salt32, ikm)
     uint8_t prk[32];
-    hkdf_extract(salt32, ikm, sizeof(ikm), prk); // RFC 5869 Extract
+    hkdf_extract(salt32, ikm, sizeof(ikm), prk);
 
-    uint8_t finished_key[32];
-    hkdf_expand_label(prk, "finished", nullptr, 0, finished_key, 32); // Expand
-
-    uint8_t exp_tag[32];
-    hmac_sha256(finished_key, 32, th_in, 32, exp_tag); // HMAC over transcript hash
+    // Finished verify key and tag
+    uint8_t finished_key[32], exp_tag[32];
+    hkdf_expand_label(prk, "finished", nullptr, 0, finished_key, sizeof(finished_key));
+    hmac_sha256(finished_key, sizeof(finished_key), th_in, 32, exp_tag);
 
     uint8_t diff = 0;
     for (size_t i=0;i<32;i++) diff |= (uint8_t)(exp_tag[i]^peer_tag[i]);
     const bool ok = (diff == 0);
+
+    // wipe temps regardless of outcome
+    memset(exp_tag, 0, sizeof(exp_tag));
+    memset(finished_key, 0, sizeof(finished_key));
+
     if (!ok) {
-        memset(exp_tag, 0, sizeof(exp_tag));
-        memset(finished_key, 0, sizeof(finished_key));
         memset(prk, 0, sizeof(prk));
         memset(salt32, 0, sizeof(salt32));
         memset(ikm, 0, sizeof(ikm));
+        memset(saltbuf, 0, sizeof(saltbuf));
         return false;
     }
 
-    // Session material (no activation here)
+    // -------- Session material for MAVLink ----------
+    // 32B master secret (optional telemetry use)
     hkdf_expand_label(prk, "ms",     nullptr, 0, ms,    32);
+
+    // AES-CTR: 16B keys + 12B nonces (base). Counter block = iv(12) || counter(4)
     hkdf_expand_label(prk, "key:tx", nullptr, 0, k_tx,  16);
     hkdf_expand_label(prk, "key:rx", nullptr, 0, k_rx,  16);
     hkdf_expand_label(prk, "iv:tx",  nullptr, 0, iv_tx, 12);
     hkdf_expand_label(prk, "iv:rx",  nullptr, 0, iv_rx, 12);
 
-    memset(exp_tag, 0, sizeof(exp_tag));
-    memset(finished_key, 0, sizeof(finished_key));
+    // ChaCha20: 32B keys (96-bit nonce uses same iv_{tx,rx})
+    hkdf_expand_label(prk, "chacha:key:tx", nullptr, 0, k_chacha_tx, 32);
+    hkdf_expand_label(prk, "chacha:key:rx", nullptr, 0, k_chacha_rx, 32);
+
+    // hygiene
     memset(prk, 0, sizeof(prk));
     memset(salt32, 0, sizeof(salt32));
     memset(ikm, 0, sizeof(ikm));
+    memset(saltbuf, 0, sizeof(saltbuf));
     return true;
 }
+
 
 void GCS_MAVLINK::HqcSession::on_hello_start(GCS_MAVLINK* owner_, mavlink_channel_t ch, uint32_t now_ms)
 {
@@ -310,9 +398,11 @@ void GCS_MAVLINK::HqcSession::pump_tx(uint32_t now_ms)
     mavlink_message_t* const mbuf = owner ? owner->channel_buffer() : nullptr;
     if (!mbuf) return;
 
-    auto all_acked = [](const std::vector<uint8_t>& v)->bool {
-        if (v.empty()) return false;
-        for (uint8_t b : v) if (!b) return false;
+    auto all_acked = [](const std::vector<uint8_t>& v) -> bool {
+        if (v.empty()) { return false; }
+        for (uint8_t b : v) {
+            if (!b) { return false; }
+        }
         return true;
     };
 
@@ -414,27 +504,24 @@ void GCS_MAVLINK::HqcSession::kick_acks()
     probe_stream(/*STA*/1, rx.cts, rx.cts_len, rx.cts_acked, rx.cts_sent);
 }
 
-void GCS_MAVLINK::HqcSession::reset()
-{
-    memset(th,    0, sizeof(th));
-    memset(ms,    0, sizeof(ms));
-    memset(k_tx,  0, sizeof(k_tx));
-    memset(k_rx,  0, sizeof(k_rx));
-    memset(iv_tx, 0, sizeof(iv_tx));
-    memset(iv_rx, 0, sizeof(iv_rx));
-
+void GCS_MAVLINK::HqcSession::reset() {
+    memset(th, 0, sizeof(th));
+    memset(ms, 0, sizeof(ms));
+    memset(k_tx, 0, sizeof(k_tx));
+    memset(k_rx, 0, sizeof(k_rx));
+    memset(iv_tx,0, sizeof(iv_tx));
+    memset(iv_rx,0, sizeof(iv_rx));
+    memset(k_chacha_tx,0,sizeof(k_chacha_tx));
+    memset(k_chacha_rx,0,sizeof(k_chacha_rx));
+    memset(rx.ss_e, 0, sizeof(rx.ss_e));
+    memset(rx.ss_s, 0, sizeof(rx.ss_s));
     rx.reset();
-
-    state             = HqcState::IDLE;
-    suite_kem         = 1;
-    aead_alg          = 1;
-    negotiated_mtu    = 220;
-    negotiated_window = 8;
-
-    t_last_rx     = 0;
-    t_last_tx     = 0;
-    retries_total = 0;
+    state = HqcState::IDLE;
+    suite_kem = 1; aead_alg = 1;
+    negotiated_mtu = 220; negotiated_window = 8;
+    t_last_rx = t_last_tx = 0; retries_total = 0;
 }
+
 
 void GCS_MAVLINK::HqcSession::start_encap()
 {
@@ -768,11 +855,14 @@ void GCS_MAVLINK::handle_hqc_ct_ack(const mavlink_message_t& msg)
         sent_now++;
     }
 
-    auto all_acked = [](const std::vector<uint8_t>& v)->bool {
-        if (v.empty()) return false;
-        for (uint8_t b : v) { if (!b) return false; }
+    auto all_acked = [](const std::vector<uint8_t>& v) -> bool {
+        if (v.empty()) { return false; }
+        for (uint8_t b : v) {
+            if (!b) { return false; }
+        }
         return true;
     };
+
 
     const bool eph_done = all_acked(rx.cte_acked) && (rx.cte_len != 0);
     const bool sta_done = all_acked(rx.cts_acked) && (rx.cts_len != 0);
@@ -793,47 +883,30 @@ void GCS_MAVLINK::handle_hqc_finish(const mavlink_message_t& msg)
     HqcRxBuf &rx = hqc_.rx;
     const mavlink_channel_t ch = this->get_chan();
 
-    // Basic session/state checks
-    if (in.session_id != rx.session_id) {
-        send_hqc_status(ch, rx.session_id, 0, HQC_KEX_BAD_SEQ, 20);
-        return;
-    }
-    if (hqc_.state != HqcState::WAIT_CF) {
-        send_hqc_status(ch, rx.session_id, 0, HQC_KEX_IN_PROGRESS, 22);
-        return;
-    }
-    if (in.role != 1 /* GCS client */) {
-        send_hqc_status(ch, rx.session_id, in.role, HQC_KEX_BAD_SEQ, 23);
-        return;
-    }
-    if (in.tag_len != 32) {
-        send_hqc_status(ch, rx.session_id, in.tag_len, HQC_KEX_BAD_LEN, 24);
-        return;
-    }
+    // Basic checks
+    if (in.session_id != rx.session_id) { send_hqc_status(ch, rx.session_id, 0, HQC_KEX_BAD_SEQ, 20); return; }
+    if (hqc_.state != HqcState::WAIT_CF) { send_hqc_status(ch, rx.session_id, 0, HQC_KEX_IN_PROGRESS, 22); return; }
+    if (in.role != 1) { send_hqc_status(ch, rx.session_id, in.role, HQC_KEX_BAD_SEQ, 23); return; }
+    if (in.tag_len != 32) { send_hqc_status(ch, rx.session_id, in.tag_len, HQC_KEX_BAD_LEN, 24); return; }
 
-    // Both CTs must be fully ACKed
-    auto all_acked = [](const std::vector<uint8_t>& v)->bool {
-        if (v.empty()) return false;
-        for (uint8_t b : v) { if (!b) return false; }
+    auto all_acked = [](const std::vector<uint8_t>& v) -> bool {
+        if (v.empty()) { return false; }
+        for (uint8_t b : v) {
+            if (!b) { return false; }
+        }
         return true;
     };
-    const bool eph_done = all_acked(rx.cte_acked) && (rx.cte_len != 0);
-    const bool sta_done = all_acked(rx.cts_acked) && (rx.cts_len != 0);
-    if (!(eph_done && sta_done)) {
+
+    if (!(all_acked(rx.cte_acked) && rx.cte_len && all_acked(rx.cts_acked) && rx.cts_len)) {
         send_hqc_status(ch, rx.session_id, 0, HQC_KEX_IN_PROGRESS, 21);
         return;
     }
 
     // LE session_id for salt binding
-    uint64_t sid_le = 0; {
-        uint8_t *p=(uint8_t*)&sid_le;
-        for (int i=0;i<8;i++) p[i]=(uint8_t)((rx.session_id>>(8*i))&0xFF);
-    }
+    uint64_t sid_le = 0; { uint8_t *p=(uint8_t*)&sid_le; for (int i=0;i<8;i++) p[i]=(uint8_t)((rx.session_id>>(8*i))&0xFF); }
 
-    // Verify FINISH and derive session material (no activation yet)
-    const bool ok = hqc_.verify_finish_and_derive(in.tag, hqc_.th, rx.ss_e, rx.ss_s, rx.salt, sid_le);
-    if (!ok) {
-        // Canonical failure path: bind ABORT into TH, notify, and clean up
+    // Verify+derive (fills k_tx/k_rx/iv_* and k_chacha_*)
+    if (!hqc_.verify_finish_and_derive(in.tag, hqc_.th, rx.ss_e, rx.ss_s, rx.salt, sid_le)) {
         th_add_abort(hqc_.th, rx.session_id, HQC_KEX_REJECTED, 31, 0);
         send_hqc_status(ch, rx.session_id, 0, HQC_KEX_REJECTED, 31);
         hqc_.reset();
@@ -841,47 +914,34 @@ void GCS_MAVLINK::handle_hqc_finish(const mavlink_message_t& msg)
         return;
     }
 
-    // Success path: bind FINISH canonically
+    // Success: bind FINISH and enable MAVLink signing
     th_add_finish(hqc_.th, in);
 
-    // --- Derive MAVLink signing key and enable signing on this link ---
-    // PRK = HKDF-Extract( SHA256( salt || LE(session_id) ), ss_e || ss_s )
-    // k_sign = HKDF-Expand-Label(PRK, "sign", 32)
-    uint8_t k_sign[32] = {0};
+    // Derive and enable signing key (32B)
+    uint8_t k_sign[32];
     {
-        uint8_t ikm[AP_KEM_BYTES*2];
+        uint8_t ikm[AP_KEM_BYTES*2], saltbuf[16+8], salt32[32], prk[32];
         memcpy(ikm, rx.ss_e, AP_KEM_BYTES);
         memcpy(ikm+AP_KEM_BYTES, rx.ss_s, AP_KEM_BYTES);
-
-        uint8_t saltbuf[16+8], salt32[32], prk[32];
-        memcpy(saltbuf, rx.salt, 16);
-        memcpy(saltbuf+16, &sid_le, 8);
+        memcpy(saltbuf, rx.salt, 16); memcpy(saltbuf+16, &sid_le, 8);
         sha256(salt32, saltbuf, sizeof(saltbuf));
-
         hkdf_extract(salt32, ikm, sizeof(ikm), prk);
         hkdf_expand_label(prk, "sign", nullptr, 0, k_sign, sizeof(k_sign));
-
-        // wipe temps
-        memset(prk, 0, sizeof(prk));
-        memset(salt32, 0, sizeof(salt32));
-        memset(ikm, 0, sizeof(ikm));
-        memset(saltbuf, 0, sizeof(saltbuf));
+        memset(ikm,0,sizeof(ikm)); memset(saltbuf,0,sizeof(saltbuf));
+        memset(salt32,0,sizeof(salt32)); memset(prk,0,sizeof(prk));
     }
-
 #if AP_MAVLINK_SIGNING_ENABLED
-    // Enable MAVLink2 signing on this channel immediately.
-    // initial_timestamp_10us = 0 (library runs in 10µs ticks from 2015-01-01 epoch, and will
-    // bump/learn; GPS later calls update_signing_timestamp()).
-    // persist=false keeps this session-ephemeral unless you decide to store it.
     enable_signing_with_key(k_sign, /*initial_timestamp_10us=*/0ULL, /*persist=*/false);
 #endif
+    memset(k_sign, 0, sizeof(k_sign));
 
-    // Free big buffers
-    if (rx.pke) { free(rx.pke); rx.pke = nullptr; }
-    if (rx.cte) { free(rx.cte); rx.cte = nullptr; }
-    if (rx.cts) { free(rx.cts); rx.cts = nullptr; }
+    // Release large buffers
+    if (rx.pke) { free(rx.pke); rx.pke=nullptr; }
+    if (rx.cte) { free(rx.cte); rx.cte=nullptr; }
+    if (rx.cts) { free(rx.cts); rx.cts=nullptr; }
 
-    // Done
+    // Encryption becomes “available” to helpers via mavlink_get_crypt_config()
     hqc_.state = HqcState::ACTIVE;
     send_hqc_status(ch, rx.session_id, 0, HQC_KEX_OK, 0);
 }
+
