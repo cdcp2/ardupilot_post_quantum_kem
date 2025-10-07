@@ -45,5 +45,3 @@
 [submodule "modules/littlefs"]
 	path = modules/littlefs
 	url = https://github.com/ArduPilot/littlefs.git
-[submodule "modules/pymavlink"]
-	url = https://github.com/cdcp2/custom_pymavlink
