@@ -78,8 +78,7 @@ void GCS_MAVLINK::clamp_kex_params(HqcRxBuf& rx) {
     if (rx.window > WIN_MAX) rx.window = WIN_MAX;
     if (rx.window < WIN_MIN) rx.window = WIN_MIN;
 }
-
-// TH += canonical HELLO
+  
 static void th_add_hello(uint8_t th[32], const mavlink_hqc_hello_t& in)
 {
     uint8_t h[4+8+4+1+1+1+1];
@@ -252,36 +251,43 @@ extern "C" bool mavlink_get_crypt_config(uint8_t chan, bool is_tx, uint8_t seq,
                                          uint32_t *counter0)
 {
     GCS_MAVLINK* b = _backend_for(chan);
-    if (!b) { return false; }
+    if (!b) return false;
     auto &S = b->hqc_;
-    if (S.state != GCS_MAVLINK::HqcState::ACTIVE) { return false; }
+    if (S.state != GCS_MAVLINK::HqcState::ACTIVE) return false;
 
-    if (!alg) { return false; }                   // defensive
-    *alg = MAV_CRYPT_ALG_CHACHA20;                // choose default
+    const uint8_t sel = S.aead_alg;               // 0=no enc, 1=ChaCha20, 2=AES-CTR
+    if (alg) *alg = (mav_crypt_alg_t)sel;
 
-    if (*alg == MAV_CRYPT_ALG_CHACHA20) {
+    if (sel == 0) {
+        return false;                             // no encryption
+    }
+
+    if (sel == MAV_CRYPT_ALG_CHACHA20) {
         const uint8_t *k  = is_tx ? S.k_chacha_tx : S.k_chacha_rx;
-        const uint8_t *iv = is_tx ? S.iv_tx       : S.iv_rx;
-        memcpy(key_out, k, 32);
-        fill_nonce_seq(nonce_out, iv, seq);  
-        *counter0 = 0;                       
+        const uint8_t *iv = is_tx ? S.iv_tx       : S.iv_rx;   
+        memcpy(key_out,   k,  32);
+        memcpy(nonce_out, iv, 12);                           
+        *counter0 = (uint32_t)seq;                            
         return true;
-    } else if (*alg == MAV_CRYPT_ALG_AESCTR128) {
-        const uint8_t *k  = is_tx ? S.k_tx  : S.k_rx;  // 16 bytes
-        const uint8_t *iv = is_tx ? S.iv_tx : S.iv_rx; // 12-byte base
+    }
+
+    if (sel == MAV_CRYPT_ALG_AESCTR128) {
+        const uint8_t *k  = is_tx ? S.k_tx : S.k_rx;          // 16 bytes
+        const uint8_t *iv = is_tx ? S.iv_tx: S.iv_rx;         // 12-byte base
         memcpy(key_out,   k,  16);
         memcpy(nonce_out, iv, 12);
-        nonce_out[12] = (uint8_t)(seq & 0xFF);
-        nonce_out[13] = (uint8_t)((seq >> 8) & 0xFF);
-        nonce_out[14] = (uint8_t)((seq >> 16) & 0xFF);
-        nonce_out[15] = (uint8_t)((seq >> 24) & 0xFF);
+        // counter in BE to match your proxy/tap (iv||counter_be32)
+        nonce_out[12] = (uint8_t)((seq >> 24) & 0xFF);
+        nonce_out[13] = (uint8_t)((seq >> 16) & 0xFF);
+        nonce_out[14] = (uint8_t)((seq >>  8) & 0xFF);
+        nonce_out[15] = (uint8_t)((seq      ) & 0xFF);
         *counter0 = 0;
         return true;
     }
 
-    // <— if we ever add other algs or the selection logic changes,
     return false;
 }
+
 
 
 
@@ -541,6 +547,17 @@ void GCS_MAVLINK::HqcSession::start_encap()
     state = HqcState::ENCAP_DONE;
 }
 
+static inline uint8_t select_aead(uint8_t offer)
+{
+    switch (offer) {
+    case 0: return 0; // no encryption
+    case 1: return 1; // chacha20
+    case 2: return 2; // aes-ctr
+    default: return 1;
+    }
+}
+
+
 void GCS_MAVLINK::handle_hqc_hello(const mavlink_message_t& msg)
 {
     hqc_.reset();
@@ -566,16 +583,14 @@ void GCS_MAVLINK::handle_hqc_hello(const mavlink_message_t& msg)
     mavlink_message_t* const mbuf = this->channel_buffer();
 
     hqc_.on_hello_start(this, ch, AP_HAL::millis());
-
-    // TH += canonical HELLO
     th_add_hello(hqc_.th, in);
 
-    // Rejects and errors produce a canonical HELLO_ACK (nack) into TH, then send.
     auto send_nack = [&](uint8_t status, uint8_t detail_log, const char* fmt, unsigned v){
         mavlink_hqc_hello_ack_t nack{};
         nack.session_id = rx.session_id;
         nack.mtu = rx.mtu; nack.window = rx.window;
-        nack.required_alg = 1; nack.accept = 0; nack.status = status;
+        nack.required_alg = hqc_.aead_alg;
+        nack.accept = 0; nack.status = status;
         nack.ct_e_len = 0; nack.ct_s_len = 0; memset(nack.rs, 0, 32);
         th_add_hello_ack(hqc_.th, nack);
         mavlink_msg_hqc_hello_ack_send_buf(mbuf, ch, nack.session_id, nack.mtu, nack.window,
@@ -584,15 +599,16 @@ void GCS_MAVLINK::handle_hqc_hello(const mavlink_message_t& msg)
         send_text(MAV_SEVERITY_ERROR, fmt, v);
     };
 
-    if (rx.version != 1) { send_nack(HQC_KEX_REJECTED, 0, "HQC: unsupported version %u", (unsigned)rx.version); return; }
-    if (rx.suite_id != 1){ send_nack(HQC_KEX_REJECTED, 0, "HQC: suite not supported (%u)", (unsigned)rx.suite_id); return; }
-    if (rx.pk_len == 0 || rx.pk_len > 65536U) {send_nack(HQC_KEX_BAD_LEN, 0, "HQC: bad pk_len=%u", (unsigned)rx.pk_len); return;}
-    if (rx.aead_offer != 1){ send_nack(HQC_KEX_REJECTED, 0, "HQC: unsupported AEAD offer (%u)", (unsigned)rx.aead_offer); return;}
+    if (rx.version != 1) { hqc_.aead_alg = select_aead(rx.aead_offer); send_nack(HQC_KEX_REJECTED, 0, "HQC: unsupported version %u", (unsigned)rx.version); return; }
+    if (rx.suite_id != 1){ hqc_.aead_alg = select_aead(rx.aead_offer); send_nack(HQC_KEX_REJECTED, 0, "HQC: suite not supported (%u)", (unsigned)rx.suite_id); return; }
+    if (rx.pk_len == 0 || rx.pk_len > 65536U) { hqc_.aead_alg = select_aead(rx.aead_offer); send_nack(HQC_KEX_BAD_LEN, 0, "HQC: bad pk_len=%u", (unsigned)rx.pk_len); return; }
+    if (rx.aead_offer > 2){ hqc_.aead_alg = 1; send_nack(HQC_KEX_REJECTED, 0, "HQC: unsupported AEAD offer (%u)", (unsigned)rx.aead_offer); return; }
+
+    hqc_.aead_alg = select_aead(rx.aead_offer);
 
     rx.pke = (uint8_t*)malloc(rx.pk_len);
     if (!rx.pke) { send_nack(HQC_KEX_INTERNAL, 1, "HQC: malloc pke failed", 0); return; }
 
-    // --- PDK load/parse (unchanged except cleanup paths) ---
     AP_Filesystem::stat_t stfile{};
     if (!AP::FS().stat("APM/CFG/kemtls_pk.bin", stfile) || stfile.size < 56) {
         send_nack(HQC_KEX_ENC_UNAV, 0, "HQC: PDK not found or too small", 0);
@@ -612,11 +628,10 @@ void GCS_MAVLINK::handle_hqc_hello(const mavlink_message_t& msg)
     const uint32_t magic   = rd32(&hdr[0]);
     const uint16_t ver     = rd16(&hdr[4]);
     const uint8_t  suite   = hdr[6];
-    const uint8_t  alg     = hdr[7];
+    const uint8_t  alg_pdk = hdr[7];
     (void)rd64(&hdr[8]);
     const uint32_t pksz    = rd32(&hdr[16]);
     const uint8_t* fp_hdr  = &hdr[20];
-
 
     AP_Filesystem::stat_t stfile2{};
     if (magic != 0x544D454B || ver != 1 || suite != 1 ||
@@ -635,21 +650,21 @@ void GCS_MAVLINK::handle_hqc_hello(const mavlink_message_t& msg)
             free(rx.pks); rx.pks=nullptr; free(rx.pke); rx.pke=nullptr; return; } got += (uint32_t)r; } }
     AP::FS().close(fd);
 
-    if (pksz != PK_BYTES) send_text(MAV_SEVERITY_WARNING, "HQC: pksz(%u) != AP_KEM_PUBLICKEYBYTES(%u) — possible mismatch", (unsigned)pksz, (unsigned)PK_BYTES);
+    if (pksz != PK_BYTES) send_text(MAV_SEVERITY_WARNING, "HQC: pksz(%u) != AP_KEM_PUBLICKEYBYTES(%u)", (unsigned)pksz, (unsigned)PK_BYTES);
 
     uint8_t fp_calc[32]; sha256(fp_calc, rx.pks, pksz);
     if (memcmp(fp_calc, fp_hdr, 32) != 0) {
         char hdrhex[65], calchex[65]; for (int i=0;i<32;i++) { snprintf(hdrhex+2*i,3,"%02X",fp_hdr[i]); snprintf(calchex+2*i,3,"%02X",fp_calc[i]); } hdrhex[64]=0; calchex[64]=0;
         send_text(MAV_SEVERITY_ERROR, "HQC: PDK fp mismatch hdr=%s calc=%s", hdrhex, calchex);
         mavlink_hqc_hello_ack_t nack{}; nack.session_id = rx.session_id; nack.mtu = rx.mtu; nack.window = rx.window;
-        nack.required_alg = 1; nack.accept = 0; nack.status = HQC_KEX_INTERNAL; nack.ct_e_len = 0; nack.ct_s_len = 0; memset(nack.rs, 0, 32);
+        nack.required_alg = hqc_.aead_alg; nack.accept = 0; nack.status = HQC_KEX_INTERNAL; nack.ct_e_len = 0; nack.ct_s_len = 0; memset(nack.rs, 0, 32);
         th_add_hello_ack(hqc_.th, nack);
         mavlink_msg_hqc_hello_ack_send_buf(mbuf, ch, nack.session_id, nack.mtu, nack.window, nack.required_alg, nack.accept, nack.status, nack.ct_e_len, nack.ct_s_len, nack.rs);
         free(rx.pks); rx.pks=nullptr; free(rx.pke); rx.pke=nullptr; return;
     }
 
     send_text(MAV_SEVERITY_INFO, "HQC: suite=%u alg=%u pksz=%u pkbytes=%u ctbytes=%u",
-              (unsigned)suite, (unsigned)alg, (unsigned)pksz, (unsigned)PK_BYTES, (unsigned)AP_KEM_CIPHERTEXTBYTES);
+              (unsigned)suite, (unsigned)alg_pdk, (unsigned)pksz, (unsigned)PK_BYTES, (unsigned)AP_KEM_CIPHERTEXTBYTES);
 
     rx.cts = (uint8_t*)malloc(AP_KEM_CIPHERTEXTBYTES);
     if (!rx.cts) { send_nack(HQC_KEX_INTERNAL, 4, "HQC: malloc cts failed", 0); free(rx.pks); rx.pks=nullptr; free(rx.pke); rx.pke=nullptr; return; }
@@ -672,24 +687,21 @@ void GCS_MAVLINK::handle_hqc_hello(const mavlink_message_t& msg)
         memcpy(rx.ss_s, ss_tmp, std::min<size_t>(sizeof(rx.ss_s), sizeof(ss_tmp)));
     }
 
-    // rs = SHA256(session_id || salt || fp_hdr)
     { uint8_t buf[8 + 16 + 32]; memcpy(buf, &rx.session_id, 8); memcpy(buf + 8, rx.salt, 16); memcpy(buf + 24, fp_hdr, 32); sha256(rx.rs, buf, sizeof(buf)); }
 
     const uint32_t ct_len_ephem  = AP_KEM_CIPHERTEXTBYTES;
     const uint32_t ct_len_static = AP_KEM_CIPHERTEXTBYTES;
 
-    // TH += summary of CT_STATIC we just produced
     { uint8_t cts_sha[32]; sha256(cts_sha, rx.cts, rx.cts_len);
-      th_add_ct_summary(hqc_.th, rx.session_id, /*STATIC*/1, rx.cts_len, cts_sha); }
+      th_add_ct_summary(hqc_.th, rx.session_id, 1, rx.cts_len, cts_sha); }
 
     hqc_.state = HqcState::HELLO_RCVD;
 
-    // Build/send ACK (and feed TH with its canonical bytes)
     mavlink_hqc_hello_ack_t ack{};
     ack.session_id   = rx.session_id;
     ack.mtu          = rx.mtu;
     ack.window       = rx.window;
-    ack.required_alg = 1;
+    ack.required_alg = hqc_.aead_alg;     // <-- negotiated from aead_offer
     ack.accept       = 1;
     ack.status       = HQC_KEX_IN_PROGRESS;
     ack.ct_e_len     = ct_len_ephem;
@@ -697,19 +709,17 @@ void GCS_MAVLINK::handle_hqc_hello(const mavlink_message_t& msg)
     memcpy(ack.rs, rx.rs, 32);
 
     th_add_hello_ack(hqc_.th, ack);
-
     mavlink_msg_hqc_hello_ack_send_buf(mbuf, ch, ack.session_id, ack.mtu, ack.window,
                                        ack.required_alg, ack.accept, ack.status,
                                        ack.ct_e_len, ack.ct_s_len, ack.rs);
 
-    // First window of CT_STATIC
     {
         uint32_t off = 0; uint8_t sent = 0;
         while (off < ct_len_static && sent < rx.window) {
             const uint16_t n = (uint16_t)std::min<uint32_t>(rx.mtu, ct_len_static - off);
             uint8_t tmp[220] = {0};
             memcpy(tmp, rx.cts + off, n);
-            mavlink_msg_hqc_ct_chunk_send_buf(mbuf, ch, rx.session_id, 1 /* STATIC */, off, n, tmp);
+            mavlink_msg_hqc_ct_chunk_send_buf(mbuf, ch, rx.session_id, 1, off, n, tmp);
             off += n; sent++;
         }
         rx.cts_sent = off;
@@ -717,7 +727,6 @@ void GCS_MAVLINK::handle_hqc_hello(const mavlink_message_t& msg)
 
     hqc_.state = HqcState::CT_TX;
 }
-
 
 void GCS_MAVLINK::handle_hqc_pk_chunk(const mavlink_message_t& msg)
 {

@@ -1,6 +1,6 @@
 import ctypes, time, struct, hashlib, os, sys, zlib
 
-SO_PATH = os.environ.get("KEM_SO", "/usr/local/lib/libpqc_hqc128.so")  # ruta ABSOLUTA
+SO_PATH = "/home/carleto/dev/hqc-mavlink-proxy/build/libpqc_hqc128.so"
 PK_LEN  = int(os.environ.get("HQC_PK_LEN", "2249"))
 SK_LEN  = int(os.environ.get("HQC_SK_LEN", "2305"))
 
@@ -26,7 +26,7 @@ crc = zlib.crc32(pk_bytes) & 0xFFFFFFFF  # CRC-32 estándar
 hdr = struct.pack("<I H B B Q I 32s I",
                   0x544D454B, 1, 1, 0, int(time.time()), PK_LEN, fp, crc)
 
-out = sys.argv[1] if len(sys.argv) > 1 else "/ws/ardupilot/ROMFS_custom/kemtls/kemtls_pk_default.bin"
+out = sys.argv[1] if len(sys.argv) > 1 else "ROMFS_custom/kemtls/kemtls_pk_default.bin"
 os.makedirs(os.path.dirname(out), exist_ok=True)
 with open(out, "wb") as f:
     f.write(hdr); f.write(pk_bytes)
@@ -38,7 +38,7 @@ hdr_sk = struct.pack(
     hashlib.sha256(sk_bytes).digest(),
     zlib.crc32(sk_bytes) & 0xFFFFFFFF
 )
-with open("/ws/ardupilot/ROMFS_custom/kemtls/kemtls_sk_default.bin","wb") as f:
+with open("ROMFS_custom/kemtls/kemtls_sk_default.bin","wb") as f:
     f.write(hdr_sk); f.write(sk_bytes)
 
 print("Wrote", out, "pk_len=", PK_LEN)
