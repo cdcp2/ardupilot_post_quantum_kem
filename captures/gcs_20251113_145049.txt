@@ -1,0 +1,2460 @@
+Frame 1: Packet, 64 bytes on wire (512 bits), 64 bytes captured (512 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:15.905773948 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:15.905773948 UTC
+    Epoch Arrival Time: 1763063475.905773948
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time since reference or first frame: 0.000000000 seconds]
+    Frame Number: 1
+    Frame Length: 64 bytes (512 bits)
+    Capture Length: 64 bytes (512 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 50
+    Identification: 0xdd61 (56673)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f57 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 30
+    Checksum: 0xfe31 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 1]
+    [Timestamps]
+        [Time since first frame: 0.000000000 seconds]
+        [Time since previous frame: 0.000000000 seconds]
+    UDP payload (22 bytes)
+Data (22 bytes)
+
+0000  fd 0a 00 00 00 01 01 4d 00 00 00 02 00 00 00 00   .......M........
+0010  00 00 ff be 5d c4                                 ....].
+    Data: fd0a00000001014d00000002000000000000ffbe5dc4
+    [Length: 22]
+
+Frame 2: Packet, 95 bytes on wire (760 bits), 95 bytes captured (760 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:15.905966012 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:15.905966012 UTC
+    Epoch Arrival Time: 1763063475.905966012
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 192.064 microseconds]
+    [Time delta from previous displayed frame: 192.064 microseconds]
+    [Time since reference or first frame: 192.064 microseconds]
+    Frame Number: 2
+    Frame Length: 95 bytes (760 bits)
+    Capture Length: 95 bytes (760 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 81
+    Identification: 0xdd62 (56674)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f37 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 61
+    Checksum: 0xfe50 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 2]
+    [Timestamps]
+        [Time since first frame: 192.064 microseconds]
+        [Time since previous frame: 192.064 microseconds]
+    UDP payload (53 bytes)
+Data (53 bytes)
+
+0000  fd 29 00 00 01 01 01 93 00 00 c4 05 00 00 ff ff   .)..............
+0010  ff ff ff 7f 4e 2c ff ff ff ff ff ff ff ff ff ff   ....N,..........
+0020  ff ff ff ff ff ff ff ff 00 00 00 00 00 37 00 00   .............7..
+0030  00 00 01 72 b0                                    ...r.
+    Data: fd290000010101930000c4050000ffffffffff7f4e2cffffffffffffffffffffffffffffffffffff000000000037000000000172b0
+    [Length: 53]
+
+Frame 3: Packet, 64 bytes on wire (512 bits), 64 bytes captured (512 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:15.920837190 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:15.920837190 UTC
+    Epoch Arrival Time: 1763063475.920837190
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 14.871178 milliseconds]
+    [Time delta from previous displayed frame: 14.871178 milliseconds]
+    [Time since reference or first frame: 15.063242 milliseconds]
+    Frame Number: 3
+    Frame Length: 64 bytes (512 bits)
+    Capture Length: 64 bytes (512 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 50
+    Identification: 0xdd64 (56676)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f54 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 30
+    Checksum: 0xfe31 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 3]
+    [Timestamps]
+        [Time since first frame: 15.063242 milliseconds]
+        [Time since previous frame: 14.871178 milliseconds]
+    UDP payload (22 bytes)
+Data (22 bytes)
+
+0000  fd 0a 00 00 02 01 01 4d 00 00 00 02 00 00 00 00   .......M........
+0010  00 00 ff be 43 e4                                 ....C.
+    Data: fd0a00000201014d00000002000000000000ffbe43e4
+    [Length: 22]
+
+Frame 4: Packet, 85 bytes on wire (680 bits), 85 bytes captured (680 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:15.927561375 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:15.927561375 UTC
+    Epoch Arrival Time: 1763063475.927561375
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 6.724185 milliseconds]
+    [Time delta from previous displayed frame: 6.724185 milliseconds]
+    [Time since reference or first frame: 21.787427 milliseconds]
+    Frame Number: 4
+    Frame Length: 85 bytes (680 bits)
+    Capture Length: 85 bytes (680 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 71
+    Identification: 0xdd65 (56677)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f3e [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 51
+    Checksum: 0xfe46 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 4]
+    [Timestamps]
+        [Time since first frame: 21.787427 milliseconds]
+        [Time since previous frame: 6.724185 milliseconds]
+    UDP payload (43 bytes)
+Data (43 bytes)
+
+0000  fd 1f 00 00 03 01 01 01 00 00 0f fc 70 53 0f 9c   ............pS..
+0010  40 42 0f 9c 50 47 a2 00 4e 2c 00 00 00 00 00 00   @B..PG..N,......
+0020  00 00 00 00 00 00 00 00 37 b0 5b                  ........7.[
+    Data: fd1f00000301010100000ffc70530f9c40420f9c5047a2004e2c000000000000000000000000000037b05b
+    [Length: 43]
+
+Frame 5: Packet, 68 bytes on wire (544 bits), 68 bytes captured (544 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:15.967890001 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:15.967890001 UTC
+    Epoch Arrival Time: 1763063475.967890001
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 40.328626 milliseconds]
+    [Time delta from previous displayed frame: 40.328626 milliseconds]
+    [Time since reference or first frame: 62.116053 milliseconds]
+    Frame Number: 5
+    Frame Length: 68 bytes (544 bits)
+    Capture Length: 68 bytes (544 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 54
+    Identification: 0xdd8a (56714)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f2a [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 34
+    Checksum: 0xfe35 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 5]
+    [Timestamps]
+        [Time since first frame: 62.116053 milliseconds]
+        [Time since previous frame: 40.328626 milliseconds]
+    UDP payload (26 bytes)
+Data (26 bytes)
+
+0000  fd 0e 00 00 04 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 68 65 6c 6c 6f 43 71                     vd helloCq
+    Data: fd0e0000040101fd000006726563696576642068656c6c6f4371
+    [Length: 26]
+
+Frame 6: Packet, 106 bytes on wire (848 bits), 106 bytes captured (848 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:15.967983100 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:15.967983100 UTC
+    Epoch Arrival Time: 1763063475.967983100
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 93.099 microseconds]
+    [Time delta from previous displayed frame: 93.099 microseconds]
+    [Time since reference or first frame: 62.209152 milliseconds]
+    Frame Number: 6
+    Frame Length: 106 bytes (848 bits)
+    Capture Length: 106 bytes (848 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 92
+    Identification: 0xdd8b (56715)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f03 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 72
+    Checksum: 0xfe5b [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 6]
+    [Timestamps]
+        [Time since first frame: 62.209152 milliseconds]
+        [Time since previous frame: 93.099 microseconds]
+    UDP payload (64 bytes)
+Data (64 bytes)
+
+0000  fd 34 00 00 05 01 01 fd 00 00 06 48 51 43 3a 20   .4.........HQC: 
+0010  73 75 69 74 65 3d 31 20 61 6c 67 3d 30 20 70 6b   suite=1 alg=0 pk
+0020  73 7a 3d 32 32 34 39 20 70 6b 62 79 74 65 73 3d   sz=2249 pkbytes=
+0030  32 32 34 39 20 63 74 62 79 74 65 73 3d 01 a8 e6   2249 ctbytes=...
+    Data: fd340000050101fd0000064851433a2073756974653d3120616c673d3020706b737a3d3232343920706b62797465733d3232343920637462797465733d01a8e6
+    [Length: 64]
+
+Frame 7: Packet, 108 bytes on wire (864 bits), 108 bytes captured (864 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:15.968054129 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:15.968054129 UTC
+    Epoch Arrival Time: 1763063475.968054129
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 71.029 microseconds]
+    [Time delta from previous displayed frame: 71.029 microseconds]
+    [Time since reference or first frame: 62.280181 milliseconds]
+    Frame Number: 7
+    Frame Length: 108 bytes (864 bits)
+    Capture Length: 108 bytes (864 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 94
+    Identification: 0xdd8c (56716)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f00 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 74
+    Checksum: 0xfe5d [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 7]
+    [Timestamps]
+        [Time since first frame: 62.280181 milliseconds]
+        [Time since previous frame: 71.029 microseconds]
+    UDP payload (66 bytes)
+Data (66 bytes)
+
+0000  fd 36 00 00 06 01 01 fd 00 00 06 34 34 33 33 00   .6.........4433.
+0010  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0020  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+0030  00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 01   ................
+0040  83 c5                                             ..
+    Data: fd360000060101fd000006343433330000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000183c5
+    [Length: 66]
+
+Frame 8: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:15.972538362 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:15.972538362 UTC
+    Epoch Arrival Time: 1763063475.972538362
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 4.484233 milliseconds]
+    [Time delta from previous displayed frame: 4.484233 milliseconds]
+    [Time since reference or first frame: 66.764414 milliseconds]
+    Frame Number: 8
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xdd8f (56719)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f22 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 8]
+    [Timestamps]
+        [Time since first frame: 66.764414 milliseconds]
+        [Time since previous frame: 4.484233 milliseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 07 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b 7a 2f            vd pk chunkz/
+    Data: fd110000070101fd0000067265636965766420706b206368756e6b7a2f
+    [Length: 29]
+
+Frame 9: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:15.981634149 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:15.981634149 UTC
+    Epoch Arrival Time: 1763063475.981634149
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 9.095787 milliseconds]
+    [Time delta from previous displayed frame: 9.095787 milliseconds]
+    [Time since reference or first frame: 75.860201 milliseconds]
+    Frame Number: 9
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xdd96 (56726)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f1b [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 9]
+    [Timestamps]
+        [Time since first frame: 75.860201 milliseconds]
+        [Time since previous frame: 9.095787 milliseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 08 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b b5 6d            vd pk chunk.m
+    Data: fd110000080101fd0000067265636965766420706b206368756e6bb56d
+    [Length: 29]
+
+Frame 10: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:15.988227312 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:15.988227312 UTC
+    Epoch Arrival Time: 1763063475.988227312
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 6.593163 milliseconds]
+    [Time delta from previous displayed frame: 6.593163 milliseconds]
+    [Time since reference or first frame: 82.453364 milliseconds]
+    Frame Number: 10
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xdd97 (56727)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f1a [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 10]
+    [Timestamps]
+        [Time since first frame: 82.453364 milliseconds]
+        [Time since previous frame: 6.593163 milliseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 09 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b f1 36            vd pk chunk.6
+    Data: fd110000090101fd0000067265636965766420706b206368756e6bf136
+    [Length: 29]
+
+Frame 11: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.003696750 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.003696750 UTC
+    Epoch Arrival Time: 1763063476.003696750
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 15.469438 milliseconds]
+    [Time delta from previous displayed frame: 15.469438 milliseconds]
+    [Time since reference or first frame: 97.922802 milliseconds]
+    Frame Number: 11
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xdd98 (56728)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f19 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 11]
+    [Timestamps]
+        [Time since first frame: 97.922802 milliseconds]
+        [Time since previous frame: 15.469438 milliseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 0a 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b 3d db            vd pk chunk=.
+    Data: fd1100000a0101fd0000067265636965766420706b206368756e6b3ddb
+    [Length: 29]
+
+Frame 12: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.027335252 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.027335252 UTC
+    Epoch Arrival Time: 1763063476.027335252
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 23.638502 milliseconds]
+    [Time delta from previous displayed frame: 23.638502 milliseconds]
+    [Time since reference or first frame: 121.561304 milliseconds]
+    Frame Number: 12
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xdda9 (56745)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f08 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 12]
+    [Timestamps]
+        [Time since first frame: 121.561304 milliseconds]
+        [Time since previous frame: 23.638502 milliseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 0b 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b 79 80            vd pk chunky.
+    Data: fd1100000b0101fd0000067265636965766420706b206368756e6b7980
+    [Length: 29]
+
+Frame 13: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.031781701 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.031781701 UTC
+    Epoch Arrival Time: 1763063476.031781701
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 4.446449 milliseconds]
+    [Time delta from previous displayed frame: 4.446449 milliseconds]
+    [Time since reference or first frame: 126.007753 milliseconds]
+    Frame Number: 13
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xddab (56747)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f06 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 13]
+    [Timestamps]
+        [Time since first frame: 126.007753 milliseconds]
+        [Time since previous frame: 4.446449 milliseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 0c 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b b4 08            vd pk chunk..
+    Data: fd1100000c0101fd0000067265636965766420706b206368756e6bb408
+    [Length: 29]
+
+Frame 14: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.031939123 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.031939123 UTC
+    Epoch Arrival Time: 1763063476.031939123
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 157.422 microseconds]
+    [Time delta from previous displayed frame: 157.422 microseconds]
+    [Time since reference or first frame: 126.165175 milliseconds]
+    Frame Number: 14
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xddac (56748)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f05 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 14]
+    [Timestamps]
+        [Time since first frame: 126.165175 milliseconds]
+        [Time since previous frame: 157.422 microseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 0d 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b f0 53            vd pk chunk.S
+    Data: fd1100000d0101fd0000067265636965766420706b206368756e6bf053
+    [Length: 29]
+
+Frame 15: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.036275712 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.036275712 UTC
+    Epoch Arrival Time: 1763063476.036275712
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 4.336589 milliseconds]
+    [Time delta from previous displayed frame: 4.336589 milliseconds]
+    [Time since reference or first frame: 130.501764 milliseconds]
+    Frame Number: 15
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xddb0 (56752)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5f01 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 15]
+    [Timestamps]
+        [Time since first frame: 130.501764 milliseconds]
+        [Time since previous frame: 4.336589 milliseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 0e 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b 3c be            vd pk chunk<.
+    Data: fd1100000e0101fd0000067265636965766420706b206368756e6b3cbe
+    [Length: 29]
+
+Frame 16: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.053756022 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.053756022 UTC
+    Epoch Arrival Time: 1763063476.053756022
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 17.480310 milliseconds]
+    [Time delta from previous displayed frame: 17.480310 milliseconds]
+    [Time since reference or first frame: 147.982074 milliseconds]
+    Frame Number: 16
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xddba (56762)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5ef7 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 16]
+    [Timestamps]
+        [Time since first frame: 147.982074 milliseconds]
+        [Time since previous frame: 17.480310 milliseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 0f 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b 78 e5            vd pk chunkx.
+    Data: fd1100000f0101fd0000067265636965766420706b206368756e6b78e5
+    [Length: 29]
+
+Frame 17: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.064789628 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.064789628 UTC
+    Epoch Arrival Time: 1763063476.064789628
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 11.033606 milliseconds]
+    [Time delta from previous displayed frame: 11.033606 milliseconds]
+    [Time since reference or first frame: 159.015680 milliseconds]
+    Frame Number: 17
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xddc0 (56768)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5ef1 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 17]
+    [Timestamps]
+        [Time since first frame: 159.015680 milliseconds]
+        [Time since previous frame: 11.033606 milliseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 10 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b a2 3b            vd pk chunk.;
+    Data: fd110000100101fd0000067265636965766420706b206368756e6ba23b
+    [Length: 29]
+
+Frame 18: Packet, 88 bytes on wire (704 bits), 88 bytes captured (704 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.103969504 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.103969504 UTC
+    Epoch Arrival Time: 1763063476.103969504
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 39.179876 milliseconds]
+    [Time delta from previous displayed frame: 39.179876 milliseconds]
+    [Time since reference or first frame: 198.195556 milliseconds]
+    Frame Number: 18
+    Frame Length: 88 bytes (704 bits)
+    Capture Length: 88 bytes (704 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 74
+    Identification: 0xddd1 (56785)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5ecf [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 54
+    Checksum: 0xfe49 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 18]
+    [Timestamps]
+        [Time since first frame: 198.195556 milliseconds]
+        [Time since previous frame: 39.179876 milliseconds]
+    UDP payload (46 bytes)
+Data (46 bytes)
+
+0000  fd 22 00 00 11 01 01 fd 00 00 06 45 4b 46 33 20   .".........EKF3 
+0010  49 4d 55 30 20 74 69 6c 74 20 61 6c 69 67 6e 6d   IMU0 tilt alignm
+0020  65 6e 74 20 63 6f 6d 70 6c 65 74 65 2a e4         ent complete*.
+    Data: fd220000110101fd000006454b463320494d55302074696c7420616c69676e6d656e7420636f6d706c6574652ae4
+    [Length: 46]
+
+Frame 19: Packet, 71 bytes on wire (568 bits), 71 bytes captured (568 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.104071193 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.104071193 UTC
+    Epoch Arrival Time: 1763063476.104071193
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 101.689 microseconds]
+    [Time delta from previous displayed frame: 101.689 microseconds]
+    [Time since reference or first frame: 198.297245 milliseconds]
+    Frame Number: 19
+    Frame Length: 71 bytes (568 bits)
+    Capture Length: 71 bytes (568 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 57
+    Identification: 0xddd2 (56786)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5edf [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 37
+    Checksum: 0xfe38 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 19]
+    [Timestamps]
+        [Time since first frame: 198.297245 milliseconds]
+        [Time since previous frame: 101.689 microseconds]
+    UDP payload (29 bytes)
+Data (29 bytes)
+
+0000  fd 11 00 00 12 01 01 fd 00 00 06 72 65 63 69 65   ...........recie
+0010  76 64 20 70 6b 20 63 68 75 6e 6b 2a 8d            vd pk chunk*.
+    Data: fd110000120101fd0000067265636965766420706b206368756e6b2a8d
+    [Length: 29]
+
+Frame 20: Packet, 100 bytes on wire (800 bits), 100 bytes captured (800 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.188982902 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.188982902 UTC
+    Epoch Arrival Time: 1763063476.188982902
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 84.911709 milliseconds]
+    [Time delta from previous displayed frame: 84.911709 milliseconds]
+    [Time since reference or first frame: 283.208954 milliseconds]
+    Frame Number: 20
+    Frame Length: 100 bytes (800 bits)
+    Capture Length: 100 bytes (800 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 86
+    Identification: 0xde17 (56855)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5e7d [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 66
+    Checksum: 0xfe55 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 20]
+    [Timestamps]
+        [Time since first frame: 283.208954 milliseconds]
+        [Time since previous frame: 84.911709 milliseconds]
+    UDP payload (58 bytes)
+Data (58 bytes)
+
+0000  fd 2e 00 00 13 01 01 fd 00 00 06 45 4b 46 33 20   ...........EKF3 
+0010  49 4d 55 30 20 4d 41 47 30 20 69 6e 69 74 69 61   IMU0 MAG0 initia
+0020  6c 20 79 61 77 20 61 6c 69 67 6e 6d 65 6e 74 20   l yaw alignment 
+0030  63 6f 6d 70 6c 65 74 65 9f a0                     complete..
+    Data: fd2e0000130101fd000006454b463320494d5530204d41473020696e697469616c2079617720616c69676e6d656e7420636f6d706c6574659fa0
+    [Length: 58]
+
+Frame 21: Packet, 70 bytes on wire (560 bits), 70 bytes captured (560 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.511949110 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.511949110 UTC
+    Epoch Arrival Time: 1763063476.511949110
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 322.966208 milliseconds]
+    [Time delta from previous displayed frame: 322.966208 milliseconds]
+    [Time since reference or first frame: 606.175162 milliseconds]
+    Frame Number: 21
+    Frame Length: 70 bytes (560 bits)
+    Capture Length: 70 bytes (560 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 56
+    Identification: 0xde9d (56989)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5e15 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 36
+    Checksum: 0xfe37 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 21]
+    [Timestamps]
+        [Time since first frame: 606.175162 milliseconds]
+        [Time since previous frame: 322.966208 milliseconds]
+    UDP payload (28 bytes)
+Data (28 bytes)
+
+0000  fd 10 00 00 8f 01 01 fd 00 00 06 48 51 43 5f 46   ...........HQC_F
+0010  49 4e 49 53 48 20 72 65 63 76 52 ce               INISH recvR.
+    Data: fd1000008f0101fd0000064851435f46494e495348207265637652ce
+    [Length: 28]
+
+Frame 22: Packet, 70 bytes on wire (560 bits), 70 bytes captured (560 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.512192996 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.512192996 UTC
+    Epoch Arrival Time: 1763063476.512192996
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 243.886 microseconds]
+    [Time delta from previous displayed frame: 243.886 microseconds]
+    [Time since reference or first frame: 606.419048 milliseconds]
+    Frame Number: 22
+    Frame Length: 70 bytes (560 bits)
+    Capture Length: 70 bytes (560 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 56
+    Identification: 0xde9e (56990)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5e14 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 36
+    Checksum: 0xfe37 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 22]
+    [Timestamps]
+        [Time since first frame: 606.419048 milliseconds]
+        [Time since previous frame: 243.886 microseconds]
+    UDP payload (28 bytes)
+Data (28 bytes)
+
+0000  fd 10 00 00 90 01 01 fd 00 00 04 53 69 67 6e 69   ...........Signi
+0010  6e 67 20 65 6e 61 62 6c 65 64 c5 4b               ng enabled.K
+    Data: fd100000900101fd0000045369676e696e6720656e61626c6564c54b
+    [Length: 28]
+
+Frame 23: Packet, 64 bytes on wire (512 bits), 64 bytes captured (512 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.518610647 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.518610647 UTC
+    Epoch Arrival Time: 1763063476.518610647
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 6.417651 milliseconds]
+    [Time delta from previous displayed frame: 6.417651 milliseconds]
+    [Time since reference or first frame: 612.836699 milliseconds]
+    Frame Number: 23
+    Frame Length: 64 bytes (512 bits)
+    Capture Length: 64 bytes (512 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 50
+    Identification: 0xdea1 (56993)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5e17 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 30
+    Checksum: 0xfe31 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 23]
+    [Timestamps]
+        [Time since first frame: 612.836699 milliseconds]
+        [Time since previous frame: 6.417651 milliseconds]
+    UDP payload (22 bytes)
+Data (22 bytes)
+
+0000  fd 0a 00 00 91 01 01 4d 00 00 00 02 00 00 00 00   .......M........
+0010  00 00 ff be 44 e7                                 ....D.
+    Data: fd0a00009101014d00000002000000000000ffbe44e7
+    [Length: 22]
+
+Frame 24: Packet, 95 bytes on wire (760 bits), 95 bytes captured (760 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.527405558 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.527405558 UTC
+    Epoch Arrival Time: 1763063476.527405558
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 8.794911 milliseconds]
+    [Time delta from previous displayed frame: 8.794911 milliseconds]
+    [Time since reference or first frame: 621.631610 milliseconds]
+    Frame Number: 24
+    Frame Length: 95 bytes (760 bits)
+    Capture Length: 95 bytes (760 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 81
+    Identification: 0xdea6 (56998)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5df3 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 61
+    Checksum: 0xfe50 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 24]
+    [Timestamps]
+        [Time since first frame: 621.631610 milliseconds]
+        [Time since previous frame: 8.794911 milliseconds]
+    UDP payload (53 bytes)
+Data (53 bytes)
+
+0000  fd 29 00 00 92 01 01 93 00 00 c4 05 00 00 ff ff   .)..............
+0010  ff ff ff 7f 4e 2c ff ff ff ff ff ff ff ff ff ff   ....N,..........
+0020  ff ff ff ff ff ff ff ff 00 00 00 00 00 37 00 00   .............7..
+0030  00 00 01 9c 2c                                    ....,
+    Data: fd290000920101930000c4050000ffffffffff7f4e2cffffffffffffffffffffffffffffffffffff00000000003700000000019c2c
+    [Length: 53]
+
+Frame 25: Packet, 64 bytes on wire (512 bits), 64 bytes captured (512 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.527531063 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.527531063 UTC
+    Epoch Arrival Time: 1763063476.527531063
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 125.505 microseconds]
+    [Time delta from previous displayed frame: 125.505 microseconds]
+    [Time since reference or first frame: 621.757115 milliseconds]
+    Frame Number: 25
+    Frame Length: 64 bytes (512 bits)
+    Capture Length: 64 bytes (512 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 50
+    Identification: 0xdea7 (56999)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5e11 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 30
+    Checksum: 0xfe31 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 25]
+    [Timestamps]
+        [Time since first frame: 621.757115 milliseconds]
+        [Time since previous frame: 125.505 microseconds]
+    UDP payload (22 bytes)
+Data (22 bytes)
+
+0000  fd 0a 00 00 93 01 01 4d 00 00 00 02 00 00 00 00   .......M........
+0010  00 00 ff be 5a c7                                 ....Z.
+    Data: fd0a00009301014d00000002000000000000ffbe5ac7
+    [Length: 22]
+
+Frame 26: Packet, 85 bytes on wire (680 bits), 85 bytes captured (680 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.529396735 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.529396735 UTC
+    Epoch Arrival Time: 1763063476.529396735
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 1.865672 milliseconds]
+    [Time delta from previous displayed frame: 1.865672 milliseconds]
+    [Time since reference or first frame: 623.622787 milliseconds]
+    Frame Number: 26
+    Frame Length: 85 bytes (680 bits)
+    Capture Length: 85 bytes (680 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 71
+    Identification: 0xdea8 (57000)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5dfb [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 51
+    Checksum: 0xfe46 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 26]
+    [Timestamps]
+        [Time since first frame: 623.622787 milliseconds]
+        [Time since previous frame: 1.865672 milliseconds]
+    UDP payload (43 bytes)
+Data (43 bytes)
+
+0000  fd 1f 00 00 94 01 01 01 00 00 0f fc 70 53 0f 9c   ............pS..
+0010  40 42 0f 9c 50 47 af 00 4e 2c 00 00 00 00 00 00   @B..PG..N,......
+0020  00 00 00 00 00 00 00 00 37 f6 fb                  ........7..
+    Data: fd1f00009401010100000ffc70530f9c40420f9c5047af004e2c000000000000000000000000000037f6fb
+    [Length: 43]
+
+Frame 27: Packet, 63 bytes on wire (504 bits), 63 bytes captured (504 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:16.812935619 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:16.812935619 UTC
+    Epoch Arrival Time: 1763063476.812935619
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 283.538884 milliseconds]
+    [Time delta from previous displayed frame: 283.538884 milliseconds]
+    [Time since reference or first frame: 907.161671 milliseconds]
+    Frame Number: 27
+    Frame Length: 63 bytes (504 bits)
+    Capture Length: 63 bytes (504 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 49
+    Identification: 0xdee8 (57064)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5dd1 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 29
+    Checksum: 0xfe30 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 27]
+    [Timestamps]
+        [Time since first frame: 907.161671 milliseconds]
+        [Time since previous frame: 283.538884 milliseconds]
+    UDP payload (21 bytes)
+Data (21 bytes)
+
+0000  fd 09 00 00 95 01 01 00 00 00 00 00 00 00 02 03   ................
+0010  51 03 03 9c a3                                    Q....
+    Data: fd0900009501010000000000000002035103039ca3
+    [Length: 21]
+
+Frame 28: Packet, 67 bytes on wire (536 bits), 67 bytes captured (536 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:17.517300237 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:17.517300237 UTC
+    Epoch Arrival Time: 1763063477.517300237
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 704.364618 milliseconds]
+    [Time delta from previous displayed frame: 704.364618 milliseconds]
+    [Time since reference or first frame: 1.611526289 seconds]
+    Frame Number: 28
+    Frame Length: 67 bytes (536 bits)
+    Capture Length: 67 bytes (536 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 53
+    Identification: 0xdf8c (57228)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5d29 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 33
+    Checksum: 0xfe34 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 28]
+    [Timestamps]
+        [Time since first frame: 1.611526289 seconds]
+        [Time since previous frame: 704.364618 milliseconds]
+    UDP payload (25 bytes)
+Data (25 bytes)
+
+0000  fd 0d 00 00 96 01 01 6f 00 00 00 00 00 00 00 00   .......o........
+0010  00 00 91 8f 2a 54 02 85 b3                        ....*T...
+    Data: fd0d00009601016f00000000000000000000918f2a540285b3
+    [Length: 25]
+
+Frame 29: Packet, 63 bytes on wire (504 bits), 63 bytes captured (504 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:17.826907752 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:17.826907752 UTC
+    Epoch Arrival Time: 1763063477.826907752
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 309.607515 milliseconds]
+    [Time delta from previous displayed frame: 309.607515 milliseconds]
+    [Time since reference or first frame: 1.921133804 seconds]
+    Frame Number: 29
+    Frame Length: 63 bytes (504 bits)
+    Capture Length: 63 bytes (504 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 49
+    Identification: 0xdfed (57325)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5ccc [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 29
+    Checksum: 0xfe30 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 29]
+    [Timestamps]
+        [Time since first frame: 1.921133804 seconds]
+        [Time since previous frame: 309.607515 milliseconds]
+    UDP payload (21 bytes)
+Data (21 bytes)
+
+0000  fd 09 00 00 97 01 01 00 00 00 00 00 00 00 02 03   ................
+0010  51 03 03 ad b7                                    Q....
+    Data: fd090000970101000000000000000203510303adb7
+    [Length: 21]
+
+Frame 30: Packet, 63 bytes on wire (504 bits), 63 bytes captured (504 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:18.850980479 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:18.850980479 UTC
+    Epoch Arrival Time: 1763063478.850980479
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 1.024072727 seconds]
+    [Time delta from previous displayed frame: 1.024072727 seconds]
+    [Time since reference or first frame: 2.945206531 seconds]
+    Frame Number: 30
+    Frame Length: 63 bytes (504 bits)
+    Capture Length: 63 bytes (504 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 49
+    Identification: 0xe15b (57691)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5b5e [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 29
+    Checksum: 0xfe30 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 30]
+    [Timestamps]
+        [Time since first frame: 2.945206531 seconds]
+        [Time since previous frame: 1.024072727 seconds]
+    UDP payload (21 bytes)
+Data (21 bytes)
+
+0000  fd 09 00 00 98 01 01 00 00 00 00 00 00 00 02 03   ................
+0010  51 03 03 2a 55                                    Q..*U
+    Data: fd0900009801010000000000000002035103032a55
+    [Length: 21]
+
+Frame 31: Packet, 63 bytes on wire (504 bits), 63 bytes captured (504 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:19.874307579 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:19.874307579 UTC
+    Epoch Arrival Time: 1763063479.874307579
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 1.023327100 seconds]
+    [Time delta from previous displayed frame: 1.023327100 seconds]
+    [Time since reference or first frame: 3.968533631 seconds]
+    Frame Number: 31
+    Frame Length: 63 bytes (504 bits)
+    Capture Length: 63 bytes (504 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 49
+    Identification: 0xe1f5 (57845)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5ac4 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 29
+    Checksum: 0xfe30 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 31]
+    [Timestamps]
+        [Time since first frame: 3.968533631 seconds]
+        [Time since previous frame: 1.023327100 seconds]
+    UDP payload (21 bytes)
+Data (21 bytes)
+
+0000  fd 09 00 00 99 01 01 00 00 00 00 00 00 00 02 03   ................
+0010  51 03 03 3a db                                    Q..:.
+    Data: fd0900009901010000000000000002035103033adb
+    [Length: 21]
+
+Frame 32: Packet, 63 bytes on wire (504 bits), 63 bytes captured (504 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:20.898287696 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:20.898287696 UTC
+    Epoch Arrival Time: 1763063480.898287696
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 1.023980117 seconds]
+    [Time delta from previous displayed frame: 1.023980117 seconds]
+    [Time since reference or first frame: 4.992513748 seconds]
+    Frame Number: 32
+    Frame Length: 63 bytes (504 bits)
+    Capture Length: 63 bytes (504 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 49
+    Identification: 0xe383 (58243)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5936 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 29
+    Checksum: 0xfe30 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 32]
+    [Timestamps]
+        [Time since first frame: 4.992513748 seconds]
+        [Time since previous frame: 1.023980117 seconds]
+    UDP payload (21 bytes)
+Data (21 bytes)
+
+0000  fd 09 00 00 9a 01 01 00 00 00 00 00 00 00 02 03   ................
+0010  51 03 03 1b 41                                    Q...A
+    Data: fd0900009a01010000000000000002035103031b41
+    [Length: 21]
+
+Frame 33: Packet, 63 bytes on wire (504 bits), 63 bytes captured (504 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:21.823386997 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:21.823386997 UTC
+    Epoch Arrival Time: 1763063481.823386997
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 925.099301 milliseconds]
+    [Time delta from previous displayed frame: 925.099301 milliseconds]
+    [Time since reference or first frame: 5.917613049 seconds]
+    Frame Number: 33
+    Frame Length: 63 bytes (504 bits)
+    Capture Length: 63 bytes (504 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 49
+    Identification: 0xe4a9 (58537)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5810 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 29
+    Checksum: 0xfe30 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 33]
+    [Timestamps]
+        [Time since first frame: 5.917613049 seconds]
+        [Time since previous frame: 925.099301 milliseconds]
+    UDP payload (21 bytes)
+Data (21 bytes)
+
+0000  fd 09 00 00 9b 01 01 00 00 00 00 00 00 00 02 03   ................
+0010  51 03 03 0b cf                                    Q....
+    Data: fd0900009b01010000000000000002035103030bcf
+    [Length: 21]
+
+Frame 34: Packet, 63 bytes on wire (504 bits), 63 bytes captured (504 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:22.844367706 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:22.844367706 UTC
+    Epoch Arrival Time: 1763063482.844367706
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 1.020980709 seconds]
+    [Time delta from previous displayed frame: 1.020980709 seconds]
+    [Time since reference or first frame: 6.938593758 seconds]
+    Frame Number: 34
+    Frame Length: 63 bytes (504 bits)
+    Capture Length: 63 bytes (504 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 49
+    Identification: 0xe84a (59466)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x546f [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 29
+    Checksum: 0xfe30 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 34]
+    [Timestamps]
+        [Time since first frame: 6.938593758 seconds]
+        [Time since previous frame: 1.020980709 seconds]
+    UDP payload (21 bytes)
+Data (21 bytes)
+
+0000  fd 09 00 00 9c 01 01 00 00 00 00 00 00 00 02 03   ................
+0010  51 03 03 48 7d                                    Q..H}
+    Data: fd0900009c0101000000000000000203510303487d
+    [Length: 21]
+
+Frame 35: Packet, 63 bytes on wire (504 bits), 63 bytes captured (504 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:23.871793584 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:23.871793584 UTC
+    Epoch Arrival Time: 1763063483.871793584
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 1.027425878 seconds]
+    [Time delta from previous displayed frame: 1.027425878 seconds]
+    [Time since reference or first frame: 7.966019636 seconds]
+    Frame Number: 35
+    Frame Length: 63 bytes (504 bits)
+    Capture Length: 63 bytes (504 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 49
+    Identification: 0xe896 (59542)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x5423 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 29
+    Checksum: 0xfe30 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 35]
+    [Timestamps]
+        [Time since first frame: 7.966019636 seconds]
+        [Time since previous frame: 1.027425878 seconds]
+    UDP payload (21 bytes)
+Data (21 bytes)
+
+0000  fd 09 00 00 9d 01 01 00 00 00 00 00 00 00 02 03   ................
+0010  51 03 03 58 f3                                    Q..X.
+    Data: fd0900009d010100000000000000020351030358f3
+    [Length: 21]
+
+Frame 36: Packet, 63 bytes on wire (504 bits), 63 bytes captured (504 bits) on interface lo, id 0
+    Section number: 1
+    Interface id: 0 (lo)
+        Interface name: lo
+        Interface description: Loopback
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Nov 13, 2025 14:51:24.894386231 -05
+    UTC Arrival Time: Nov 13, 2025 19:51:24.894386231 UTC
+    Epoch Arrival Time: 1763063484.894386231
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 1.022592647 seconds]
+    [Time delta from previous displayed frame: 1.022592647 seconds]
+    [Time since reference or first frame: 8.988612283 seconds]
+    Frame Number: 36
+    Frame Length: 63 bytes (504 bits)
+    Capture Length: 63 bytes (504 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:ip:udp:data]
+    Character encoding: ASCII (0)
+Ethernet II, Src: 00:00:00_00:00:00 (00:00:00:00:00:00), Dst: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Destination: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+    [Stream index: 0]
+Internet Protocol Version 4, Src: 127.0.0.1, Dst: 127.0.0.1
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)
+        0000 00.. = Differentiated Services Codepoint: Default (0)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 49
+    Identification: 0xe9c2 (59842)
+    010. .... = Flags: 0x2, Don't fragment
+        0... .... = Reserved bit: Not set
+        .1.. .... = Don't fragment: Set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x52f7 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 127.0.0.1
+    Destination Address: 127.0.0.1
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 45897, Dst Port: 14600
+    Source Port: 45897
+    Destination Port: 14600
+    Length: 29
+    Checksum: 0xfe30 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 36]
+    [Timestamps]
+        [Time since first frame: 8.988612283 seconds]
+        [Time since previous frame: 1.022592647 seconds]
+    UDP payload (21 bytes)
+Data (21 bytes)
+
+0000  fd 09 00 00 9e 01 01 00 00 00 00 00 00 00 02 03   ................
+0010  51 03 03 79 69                                    Q..yi
+    Data: fd0900009e01010000000000000002035103037969
+    [Length: 21]
+
